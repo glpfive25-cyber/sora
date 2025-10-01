@@ -136,13 +136,27 @@ class Sora2 {
   // 视频生成
   async generateVideo(prompt, options = {}) {
     try {
-      const response = await this.client.post('/v1/video/generations', {
+      const requestData = {
         prompt: prompt,
         orientation: options.orientation || 'landscape', // landscape, portrait, square
         duration: options.duration || 5,
-        resolution: options.resolution || '1080p',
-        ...options
+        resolution: options.resolution || '1080p'
+      };
+
+      // 如果有图片，添加到请求中
+      if (options.image) {
+        requestData.image = options.image;
+        console.log('[Sora2] Generating video with reference image');
+      }
+
+      // 添加其他选项
+      Object.keys(options).forEach(key => {
+        if (!['orientation', 'duration', 'resolution', 'image'].includes(key)) {
+          requestData[key] = options[key];
+        }
       });
+
+      const response = await this.client.post('/v1/video/generations', requestData);
 
       return response.data;
     } catch (error) {

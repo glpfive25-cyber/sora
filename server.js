@@ -81,13 +81,19 @@ app.post('/api/completion', async (req, res) => {
 // Video generation
 app.post('/api/video/generate', async (req, res) => {
   try {
-    const { prompt, options } = req.body;
+    const { prompt, image, options } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const response = await sora.generateVideo(prompt, options);
+    // 将图片数据传递给视频生成选项
+    const videoOptions = {
+      ...options,
+      image: image // base64编码的图片数据
+    };
+
+    const response = await sora.generateVideo(prompt, videoOptions);
     res.json(response);
   } catch (error) {
     console.error('Video generation error:', error);

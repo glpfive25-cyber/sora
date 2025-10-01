@@ -2,6 +2,7 @@
 let chatHistory = [];
 let currentMode = 'chat'; // 'chat' or 'video'
 let videoTasks = {}; // 存储视频任务
+let uploadedImageData = null; // 存储上传的图片数据
 
 // DOM Elements
 const messagesContainer = document.getElementById('messagesContainer');
@@ -17,6 +18,10 @@ const temperatureSlider = document.getElementById('temperature');
 const tempValue = document.getElementById('tempValue');
 const chatOptions = document.getElementById('chatOptions');
 const orientation = document.getElementById('orientation');
+const imageUpload = document.getElementById('imageUpload');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const removeImage = document.getElementById('removeImage');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,6 +37,10 @@ function setupEventListeners() {
     temperatureSlider.addEventListener('input', (e) => {
         tempValue.textContent = e.target.value;
     });
+
+    // Image upload handlers
+    imageUpload.addEventListener('change', handleImageUpload);
+    removeImage.addEventListener('click', handleRemoveImage);
 }
 
 function toggleMode() {
@@ -173,17 +182,24 @@ async function handleVideoSubmit(e) {
     generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>生成中...</span>';
 
     try {
+        const requestBody = {
+            prompt: prompt,
+            options: {
+                orientation: orientation.value
+            }
+        };
+
+        // 如果有上传的图片，添加到请求中
+        if (uploadedImageData) {
+            requestBody.image = uploadedImageData;
+        }
+
         const response = await fetch('/api/video/generate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                prompt: prompt,
-                options: {
-                    orientation: orientation.value
-                }
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
@@ -195,8 +211,9 @@ async function handleVideoSubmit(e) {
         // 显示任务信息
         addVideoTask(data);
 
-        // 清空输入
+        // 清空输入和图片
         videoPrompt.value = '';
+        handleRemoveImage();
 
     } catch (error) {
         console.error('Error:', error);
@@ -538,4 +555,38 @@ function removeMessage(messageId) {
     if (messageDiv) {
         messageDiv.remove();
     }
+}
+
+// Image upload handlers
+function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('请上传图片文件！');
+        return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('图片大小不能超过10MB！');
+        return;
+    }
+
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        uploadedImageData = event.target.result;
+        previewImg.src = event.target.result;
+        imagePreview.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleRemoveImage() {
+    uploadedImageData = null;
+    imageUpload.value = '';
+    imagePreview.classList.add('hidden');
+    previewImg.src = '';
 }
