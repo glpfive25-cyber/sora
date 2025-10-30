@@ -158,7 +158,12 @@ class Sora2 {
       });
 
       console.log(`[Sora2] Using model: ${requestData.model}`);
-      const response = await this.client.post('/v1/video/generations', requestData);
+
+      // Video generation typically returns immediately with a task ID
+      // So we use a shorter timeout for the initial request
+      const response = await this.client.post('/v1/video/generations', requestData, {
+        timeout: 30000 // 30 second timeout for initial task creation
+      });
 
       return response.data;
     } catch (error) {
@@ -209,8 +214,14 @@ class Sora2 {
       console.log(`[Sora2] Generating image with model: ${requestData.model}`);
       const response = await this.client.post('/v1/images/generations', requestData);
 
+      // 检查是否有错误响应
+      if (response.data && response.data.error) {
+        console.error('API returned error:', response.data.error);
+        throw new Error(response.data.error.message || response.data.error.message_zh || 'Image generation failed');
+      }
+
       // 转换返回的数据格式
-      if (response.data && response.data.data) {
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
         const images = response.data.data.map(img => {
           if (img.b64_json) {
             return `data:image/png;base64,${img.b64_json}`;
@@ -223,9 +234,9 @@ class Sora2 {
         return { images: images };
       }
 
-      // 如果响应格式不符合预期，返回空数组
+      // 如果响应格式不符合预期，记录并抛出错误
       console.warn('Unexpected response format from API:', response.data);
-      return { images: [] };
+      throw new Error('Invalid response format from API');
     } catch (error) {
       throw new Error(`Image generation error: ${error.response?.data?.error?.message || error.message}`);
     }
@@ -255,7 +266,13 @@ class Sora2 {
         console.log(`[Sora2] Creating image variation`);
         const response = await this.client.post('/v1/images/variations', variationData);
 
-        if (response.data && response.data.data) {
+        // 检查是否有错误响应
+        if (response.data && response.data.error) {
+          console.error('API returned error:', response.data.error);
+          throw new Error(response.data.error.message || response.data.error.message_zh || 'Image variation failed');
+        }
+
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
           const images = response.data.data.map(img => {
             if (img.b64_json) {
               return `data:image/png;base64,${img.b64_json}`;
@@ -267,9 +284,9 @@ class Sora2 {
 
           return { images: images };
         }
-        // 如果响应格式不符合预期，返回空数组
+        // 如果响应格式不符合预期，抛出错误
         console.warn('Unexpected variation response format from API:', response.data);
-        return { images: [] };
+        throw new Error('Invalid response format from API');
       } else if (options.edit_type === 'outpaint') {
         // 使用outpaint endpoint
         const outpaintData = {
@@ -282,7 +299,13 @@ class Sora2 {
         console.log(`[Sora2] Outpainting image`);
         const response = await this.client.post('/v1/images/outpaint', outpaintData);
 
-        if (response.data && response.data.data) {
+        // 检查是否有错误响应
+        if (response.data && response.data.error) {
+          console.error('API returned error:', response.data.error);
+          throw new Error(response.data.error.message || response.data.error.message_zh || 'Outpaint failed');
+        }
+
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
           const images = response.data.data.map(img => {
             if (img.b64_json) {
               return `data:image/png;base64,${img.b64_json}`;
@@ -294,9 +317,9 @@ class Sora2 {
 
           return { images: images };
         }
-        // 如果响应格式不符合预期，返回空数组
-        console.warn('Unexpected variation response format from API:', response.data);
-        return { images: [] };
+        // 如果响应格式不符合预期，抛出错误
+        console.warn('Unexpected outpaint response format from API:', response.data);
+        throw new Error('Invalid response format from API');
       }
 
       // 默认使用inpaint
