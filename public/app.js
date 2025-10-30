@@ -949,18 +949,23 @@ async function handleTextToImage(e) {
     try {
         // 构建更详细的提示词
         let fullPrompt = prompt;
-        if (negativePrompt.value.trim()) {
+
+        // 安全检查元素是否存在
+        if (negativePrompt && negativePrompt.value && negativePrompt.value.trim()) {
             fullPrompt += `. Avoid: ${negativePrompt.value.trim()}`;
         }
 
         // 添加图片参数到提示词
-        const sizeText = imageSize.value === '1024x1024' ? 'square' :
-                        imageSize.value === '1024x1792' ? 'portrait' :
-                        imageSize.value === '1792x1024' ? 'landscape' : 'square';
+        let sizeText = 'square'; // 默认值
+        if (imageSize && imageSize.value) {
+            sizeText = imageSize.value === '1024x1024' ? 'square' :
+                      imageSize.value === '1024x1792' ? 'portrait' :
+                      imageSize.value === '1792x1024' ? 'landscape' : 'square';
+        }
         fullPrompt += `, ${sizeText} format, high quality, detailed`;
 
         // 使用chat API格式调用图像模型
-        const selectedModel = imageModel.value || 'sora_image';
+        const selectedModel = (imageModel && imageModel.value) ? imageModel.value : 'sora_image';
         const requestBody = {
             model: selectedModel,
             messages: [
@@ -1192,7 +1197,7 @@ async function attemptImageEdit(editType, prompt, imageData, retryCount = 0) {
         ];
 
         // 使用图像模型进行图生图
-        const selectedModel = imageModel.value || 'sora_image';
+        const selectedModel = (imageModel && imageModel.value) ? imageModel.value : 'sora_image';
 
         const requestBody = {
             model: selectedModel,
