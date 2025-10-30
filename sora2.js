@@ -6,7 +6,7 @@ dotenv.config();
 class Sora2 {
   constructor(apiKey = process.env.SORA_API_KEY, baseURL = process.env.SORA_BASE_URL) {
     this.apiKey = apiKey;
-    this.baseURL = baseURL || 'https://apipro.maynor1024.live/';
+    this.baseURL = baseURL || 'https://api.nextai.trade/';
     this.client = axios.create({
       baseURL: this.baseURL,
       headers: {
@@ -138,6 +138,7 @@ class Sora2 {
     try {
       const requestData = {
         prompt: prompt,
+        model: options.model || 'sora_video2', // 使用指定的模型或默认模型
         orientation: options.orientation || 'landscape', // landscape, portrait, square
         duration: options.duration || 5,
         resolution: options.resolution || '1080p'
@@ -151,11 +152,12 @@ class Sora2 {
 
       // 添加其他选项
       Object.keys(options).forEach(key => {
-        if (!['orientation', 'duration', 'resolution', 'image'].includes(key)) {
+        if (!['orientation', 'duration', 'resolution', 'image', 'model'].includes(key)) {
           requestData[key] = options[key];
         }
       });
 
+      console.log(`[Sora2] Using model: ${requestData.model}`);
       const response = await this.client.post('/v1/video/generations', requestData);
 
       return response.data;
@@ -171,6 +173,162 @@ class Sora2 {
       return response.data;
     } catch (error) {
       throw new Error(`Task query error: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  // 图像生成
+  async generateImage(prompt, options = {}) {
+    try {
+      const requestData = {
+        prompt: prompt,
+        model: options.model || 'sora_image',
+        size: options.size || '1024x1024',
+        n: options.num_images || 1,
+        response_format: 'b64_json',
+        quality: 'standard'
+      };
+
+      // 添加负向提示词
+      if (options.negative_prompt) {
+        requestData.negative_prompt = options.negative_prompt;
+      }
+
+      // 添加种子值
+      if (options.seed) {
+        requestData.seed = options.seed;
+      }
+
+      // 添加步数和CFG Scale（如果API支持）
+      if (options.steps) {
+        requestData.steps = options.steps;
+      }
+      if (options.cfg_scale) {
+        requestData.cfg_scale = options.cfg_scale;
+      }
+
+      console.log(`[Sora2] Generating image with model: ${requestData.model}`);
+      const response = await this.client.post('/v1/images/generations', requestData);
+
+      // 转换返回的数据格式
+      if (response.data && response.data.data) {
+        const images = response.data.data.map(img => {
+          if (img.b64_json) {
+            return `data:image/png;base64,${img.b64_json}`;
+          } else if (img.url) {
+            return img.url;
+          }
+          return null;
+        }).filter(img => img !== null);
+
+        return { images: images };
+      }
+
+      // 如果响应格式不符合预期，返回空数组
+      console.warn('Unexpected response format from API:', response.data);
+      return { images: [] };
+    } catch (error) {
+      throw new Error(`Image generation error: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  // 图像编辑
+  async editImage(options = {}) {
+    try {
+      const requestData = {
+        image: options.image,
+        prompt: options.prompt || '',
+        n: 1,
+        size: '1024x1024',
+        response_format: 'b64_json'
+      };
+
+      // 添加编辑类型
+      if (options.edit_type === 'inpaint' && options.mask) {
+        requestData.mask = options.mask;
+      } else if (options.edit_type === 'variation') {
+        // 使用variation endpoint
+        const variationData = {
+          image: options.image,
+          n: 1,
+          response_format: 'b64_json'
+        };
+        console.log(`[Sora2] Creating image variation`);
+        const response = await this.client.post('/v1/images/variations', variationData);
+
+        if (response.data && response.data.data) {
+          const images = response.data.data.map(img => {
+            if (img.b64_json) {
+              return `data:image/png;base64,${img.b64_json}`;
+            } else if (img.url) {
+              return img.url;
+            }
+            return null;
+          }).filter(img => img !== null);
+
+          return { images: images };
+        }
+        // 如果响应格式不符合预期，返回空数组
+        console.warn('Unexpected variation response format from API:', response.data);
+        return { images: [] };
+      } else if (options.edit_type === 'outpaint') {
+        // 使用outpaint endpoint
+        const outpaintData = {
+          image: options.image,
+          prompt: options.prompt || '',
+          n: 1,
+          size: '1024x1024',
+          response_format: 'b64_json'
+        };
+        console.log(`[Sora2] Outpainting image`);
+        const response = await this.client.post('/v1/images/outpaint', outpaintData);
+
+        if (response.data && response.data.data) {
+          const images = response.data.data.map(img => {
+            if (img.b64_json) {
+              return `data:image/png;base64,${img.b64_json}`;
+            } else if (img.url) {
+              return img.url;
+            }
+            return null;
+          }).filter(img => img !== null);
+
+          return { images: images };
+        }
+        // 如果响应格式不符合预期，返回空数组
+        console.warn('Unexpected variation response format from API:', response.data);
+        return { images: [] };
+      }
+
+      // 默认使用inpaint
+      if (options.mask) {
+        console.log(`[Sora2] Inpainting image`);
+        const response = await this.client.post('/v1/images/edits', requestData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        if (response.data && response.data.data) {
+          const images = response.data.data.map(img => {
+            if (img.b64_json) {
+              return `data:image/png;base64,${img.b64_json}`;
+            } else if (img.url) {
+              return img.url;
+            }
+            return null;
+          }).filter(img => img !== null);
+
+          return { images: images };
+        }
+        // 如果响应格式不符合预期，返回空数组
+        console.warn('Unexpected variation response format from API:', response.data);
+        return { images: [] };
+      } else {
+        // 如果没有mask，使用生成功能
+        return await this.generateImage(options.prompt, { ...options });
+      }
+    } catch (error) {
+      throw new Error(`Image edit error: ${error.response?.data?.error?.message || error.message}`);
     }
   }
 }
