@@ -1402,9 +1402,14 @@ function showProgressIndicator() {
     progressIndicator.classList.remove('hidden');
     progressBar.style.width = '10%';
     statusText.textContent = window.i18n.t('processingVideo') || '正在生成视频...';
-    document.getElementById('progressPercent').textContent = '处理中';
-    document.getElementById('elapsedTime').textContent = '⏱️ 视频生成通常需要 1-3 分钟，请耐心等待';
-    document.getElementById('estimatedTime').textContent = '💡 高清和15秒版本可能需要更长时间（3-5分钟）';
+
+    const progressPercent = document.getElementById('progressPercent');
+    const elapsedTime = document.getElementById('elapsedTime');
+    const estimatedTime = document.getElementById('estimatedTime');
+
+    if (progressPercent) progressPercent.textContent = '处理中';
+    if (elapsedTime) elapsedTime.textContent = '⏱️ 视频生成通常需要 1-3 分钟，请耐心等待';
+    if (estimatedTime) estimatedTime.textContent = '💡 高清和15秒版本可能需要更长时间（3-5分钟）';
 
     startTime = Date.now();
 
@@ -2197,9 +2202,7 @@ function updateDynamicContent() {
     if (resetBtn) {
         resetBtn.innerHTML = `<i class="fas fa-redo"></i><span>${window.i18n.t('reset')}</span>`;
     }
-    if (sendBtn) {
-        sendBtn.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${window.i18n.t('send')}</span>`;
-    }
+    // sendBtn removed - no longer in UI
     if (downloadBtn) {
         downloadBtn.innerHTML = `<i class="fas fa-download mr-2"></i><span>${window.i18n.t('download')}</span>`;
     }
