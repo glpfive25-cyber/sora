@@ -1,0 +1,203 @@
+# Chat(聊天格式兼容
+
+## OpenAPI Specification
+
+```yaml
+openapi: 3.0.1
+info:
+  title: ''
+  description: ''
+  version: 1.0.0
+paths:
+  /v1/chat/completions:
+    post:
+      summary: Chat(聊天格式兼容
+      deprecated: false
+      description: |+
+        在提示词中添加要求即可，如提示词以(竖屏、横屏,15s,高清）开头; 也可以通过模型名来指定
+        sora_video2-portrait 竖屏
+        sora_video2-landscape 横屏
+        sora_video2-portrait-hd 高清版
+        sora_video2-portrait-15s  pro 15s 时间
+        sora_video2-portrait-hd-15s 高清pro（生成时间很长
+        支持多个参考图
+        关于审查，官方审查会涉及至少3个阶段/方向：
+        1、提交的图片中是否涉及真人（非常像真人的也不行）
+        2、提示词内容是否违规（暴力、色情、版权、活着的名人）
+        3、生成结果审查是否合格（这也是大家经常看到的生成了90%多后失败的原因）
+
+      tags:
+        - 视频模型/统一格式接口/Sora2 视频
+        - 模型接口/聊天接口（Chat）
+      parameters:
+        - name: Content-Type
+          in: header
+          description: ''
+          required: true
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          description: ''
+          required: true
+          example: application/json
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          required: false
+          example: Bearer {{YOUR_API_KEY}}
+          schema:
+            type: string
+            default: Bearer {{YOUR_API_KEY}}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  x-apifox-mock: sora_video2
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                    x-apifox-orders:
+                      - role
+                      - content
+                  description: >-
+                    以[聊天格式](https://platform.openai.com/docs/guides/chat/introduction)生成聊天完成的消息。
+                stream:
+                  type: boolean
+                  description: >-
+                    如果设置，将发送部分消息增量，就像在 ChatGPT
+                    中一样。当令牌可用时，令牌将作为纯数据[服务器发送事件](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)`data:
+                    [DONE]`发送，流由消息终止。[有关示例代码](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb)，请参阅
+                    OpenAI Cookbook 。
+              required:
+                - model
+                - messages
+              x-apifox-orders:
+                - model
+                - messages
+                - stream
+            example:
+              model: sora_video2
+              stream: false
+              messages:
+                - role: user
+                  content:
+                    - type: text
+                      text: 竖屏 动起来
+                    - type: image_url
+                      image_url:
+                        url: >-
+                          https://github.com/dianping/cat/raw/master/cat-home/src/main/webapp/images/logo/cat_logo03.png
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  created:
+                    type: integer
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        message:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: string
+                          required:
+                            - role
+                            - content
+                          x-apifox-orders:
+                            - role
+                            - content
+                        finish_reason:
+                          type: string
+                      x-apifox-orders:
+                        - index
+                        - message
+                        - finish_reason
+                  usage:
+                    type: object
+                    properties:
+                      prompt_tokens:
+                        type: integer
+                      completion_tokens:
+                        type: integer
+                      total_tokens:
+                        type: integer
+                    required:
+                      - prompt_tokens
+                      - completion_tokens
+                      - total_tokens
+                    x-apifox-orders:
+                      - prompt_tokens
+                      - completion_tokens
+                      - total_tokens
+                required:
+                  - id
+                  - object
+                  - created
+                  - choices
+                  - usage
+                x-apifox-orders:
+                  - id
+                  - object
+                  - created
+                  - choices
+                  - usage
+              example:
+                id: chatcmpl-123
+                object: chat.completion
+                created: 1677652288
+                choices:
+                  - index: 0
+                    message:
+                      role: assistant
+                      content: >+
+                        ✅
+                        视频生成成功，[点击这里](https://midjourney-plus.oss-us-west-1.aliyuncs.com/sora/e43f892b-7d30-4100-bf34-8d5e9bbb7398.mp4)
+                        查看视频~~~
+
+                    finish_reason: stop
+                usage:
+                  prompt_tokens: 9
+                  completion_tokens: 12
+                  total_tokens: 21
+          headers: {}
+          x-apifox-name: OK
+      security: []
+      x-apifox-folder: 视频模型/统一格式接口/Sora2 视频
+      x-apifox-status: released
+      x-run-in-apifox: https://app.apifox.com/web/project/3868318/apis/api-358026246-run
+components:
+  schemas: {}
+  securitySchemes: {}
+servers: []
+security: []
+
+```

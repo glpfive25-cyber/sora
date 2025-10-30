@@ -1,0 +1,247 @@
+# Chat(生成图片)  
+
+## OpenAPI Specification
+
+```yaml
+openapi: 3.0.1
+info:
+  title: ''
+  description: ''
+  version: 1.0.0
+paths:
+  /v1/chat/completions:
+    post:
+      summary: 'Chat(生成图片)  '
+      deprecated: false
+      description: >-
+        [官方指南](https://platform.openai.com/docs/guides/text-generation/chat-completions-api)
+
+        [官方API文档](https://platform.openai.com/docs/api-reference/chat)
+
+        所有对话模型，都可使用此接口， 修改 model 属性为模型名
+
+        需要模型支持生图能力
+      tags:
+        - 绘图模型/OpenAI 聊天格式
+        - 模型接口/聊天接口（Chat）
+      parameters:
+        - name: Content-Type
+          in: header
+          description: ''
+          required: true
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          description: ''
+          required: true
+          example: application/json
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          required: false
+          example: Bearer {{YOUR_API_KEY}}
+          schema:
+            type: string
+            default: Bearer {{YOUR_API_KEY}}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  description: >-
+                    要使用的模型的 ID。有关哪些模型适用于聊天 API
+                    的详细信息，请参阅[模型端点兼容性表。](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+                  enum:
+                    - gpt-image-1
+                    - gpt-4o-image
+                    - sora_image
+                    - flux-kontext-pro
+                    - flux
+                    - nano-banana
+                    - dall-e-3
+                    - recraftv3
+                    - qwen-image
+                    - nano-banana-hd
+                    - doubao-seedream-4-0-250828
+                    - doubao-seededit-3-0-i2i-250628
+                    - doubao-seedream-3-0-t2i-250415
+                  x-apifox-enum:
+                    - value: gpt-image-1
+                      name: ''
+                      description: ''
+                    - value: gpt-4o-image
+                      name: ''
+                      description: ''
+                    - value: sora_image
+                      name: ''
+                      description: ''
+                    - value: flux-kontext-pro
+                      name: ''
+                      description: 支持所有 flux-kontext 系列，flux-kontext-dev 必须有参考图
+                    - value: flux
+                      name: ''
+                      description: 支持所有flux 系列
+                    - value: nano-banana
+                      name: ''
+                      description: ''
+                    - value: dall-e-3
+                      name: ''
+                      description: ''
+                    - value: recraftv3
+                      name: ''
+                      description: ''
+                    - value: qwen-image
+                      name: ''
+                      description: ''
+                    - value: nano-banana-hd
+                      name: ''
+                      description: ''
+                    - value: doubao-seedream-4-0-250828
+                      name: ''
+                      description: ''
+                    - value: doubao-seededit-3-0-i2i-250628
+                      name: ''
+                      description: ''
+                    - value: doubao-seedream-3-0-t2i-250415
+                      name: ''
+                      description: ''
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                    x-apifox-orders:
+                      - role
+                      - content
+                  description: >-
+                    以[聊天格式](https://platform.openai.com/docs/guides/chat/introduction)生成聊天完成的消息。
+                stream:
+                  type: boolean
+                  description: >-
+                    如果设置，将发送部分消息增量，就像在 ChatGPT
+                    中一样。当令牌可用时，令牌将作为纯数据[服务器发送事件](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)`data:
+                    [DONE]`发送，流由消息终止。[有关示例代码](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb)，请参阅
+                    OpenAI Cookbook 。
+              required:
+                - model
+                - messages
+              x-apifox-orders:
+                - model
+                - messages
+                - stream
+            example:
+              model: gpt-4o-image
+              stream: false
+              messages:
+                - role: user
+                  content: 画只猫
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  created:
+                    type: integer
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        message:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: string
+                          required:
+                            - role
+                            - content
+                          x-apifox-orders:
+                            - role
+                            - content
+                        finish_reason:
+                          type: string
+                      x-apifox-orders:
+                        - index
+                        - message
+                        - finish_reason
+                  usage:
+                    type: object
+                    properties:
+                      prompt_tokens:
+                        type: integer
+                      completion_tokens:
+                        type: integer
+                      total_tokens:
+                        type: integer
+                    required:
+                      - prompt_tokens
+                      - completion_tokens
+                      - total_tokens
+                    x-apifox-orders:
+                      - prompt_tokens
+                      - completion_tokens
+                      - total_tokens
+                required:
+                  - id
+                  - object
+                  - created
+                  - choices
+                  - usage
+                x-apifox-orders:
+                  - id
+                  - object
+                  - created
+                  - choices
+                  - usage
+              example:
+                id: chatcmpl-123
+                object: chat.completion
+                created: 1677652288
+                choices:
+                  - index: 0
+                    message:
+                      role: assistant
+                      content: |-
+
+
+                        Hello there, how may I assist you today?
+                    finish_reason: stop
+                usage:
+                  prompt_tokens: 9
+                  completion_tokens: 12
+                  total_tokens: 21
+          headers: {}
+          x-apifox-name: OK
+      security: []
+      x-apifox-folder: 绘图模型/OpenAI 聊天格式
+      x-apifox-status: released
+      x-run-in-apifox: https://app.apifox.com/web/project/3868318/apis/api-350777251-run
+components:
+  schemas: {}
+  securitySchemes: {}
+servers: []
+security: []
+
+```

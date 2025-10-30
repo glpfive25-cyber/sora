@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频生成进度条演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">视频生成进度条演示</h1>
+
+        <div class="max-w-3xl mx-auto">
+            <!-- Control Panel -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">控制面板</h2>
+                <div class="space-y-4">
+                    <button id="startDemo" class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition duration-200 flex items-center justify-center space-x-2 font-semibold">
+                        <i class="fas fa-play"></i>
+                        <span>开始生成演示</span>
+                    </button>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="simulateQueued" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition text-sm">
+                            模拟排队状态
+                        </button>
+                        <button id="simulateProcessing" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition text-sm">
+                            模拟处理状态
+                        </button>
+                        <button id="simulateComplete" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition text-sm">
+                            模拟完成状态
+                        </button>
+                    </div>
+
+                    <button id="resetDemo" class="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition duration-200 flex items-center justify-center space-x-2">
+                        <i class="fas fa-redo"></i>
+                        <span>重置</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Display -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">进度显示</h2>
+
+                <!-- Progress Indicator -->
+                <div id="progressIndicator">
+                    <div class="bg-gray-200 rounded-full h-4 relative overflow-hidden">
+                        <div id="progressBar" class="bg-gradient-to-r from-orange-400 to-orange-600 h-4 rounded-full transition-all duration-500 ease-out relative" style="width: 0%">
+                            <div class="shimmer absolute inset-0 rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-4">
+                        <p id="statusText" class="text-sm text-gray-600">等待开始...</p>
+                        <span id="progressPercent" class="text-lg font-bold text-orange-600">0%</span>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center text-sm text-gray-500 mb-1">
+                                <i class="fas fa-clock mr-2 text-blue-500"></i>
+                                <span class="font-medium">已用时间</span>
+                            </div>
+                            <span id="elapsedTime" class="text-lg font-semibold text-gray-800">0 秒</span>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center text-sm text-gray-500 mb-1">
+                                <i class="fas fa-hourglass-half mr-2 text-orange-500"></i>
+                                <span class="font-medium">预计剩余</span>
+                            </div>
+                            <span id="estimatedTime" class="text-lg font-semibold text-gray-800">未知</span>
+                        </div>
+                    </div>
+
+                    <!-- Status Details -->
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg" id="statusDetails">
+                        <h3 class="font-semibold text-sm text-blue-900 mb-2">当前状态详情</h3>
+                        <ul id="statusList" class="text-sm text-blue-700 space-y-1">
+                            <li><i class="fas fa-info-circle mr-1"></i> 点击"开始生成演示"按钮开始</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Info -->
+            <div class="mt-6 bg-blue-50 rounded-xl p-6">
+                <h3 class="font-bold text-lg mb-3">演示说明</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>这是一个模拟的视频生成进度演示</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>展示了增强的进度条功能：百分比、时间估计、状态详情</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>真实场景中，进度会根据API返回的状态更新</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>可以使用控制按钮测试不同状态的显示效果</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = null;
+        let progressInterval = null;
+        let elapsedInterval = null;
+        let currentProgress = 0;
+        let isRunning = false;
+
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const statusText = document.getElementById('statusText');
+        const elapsedTime = document.getElementById('elapsedTime');
+        const estimatedTime = document.getElementById('estimatedTime');
+        const statusList = document.getElementById('statusList');
+
+        // Start demo
+        document.getElementById('startDemo').addEventListener('click', () => {
+            if (isRunning) return;
+            startFullDemo();
+        });
+
+        // Simulate different states
+        document.getElementById('simulateQueued').addEventListener('click', () => {
+            simulateQueuedState();
+        });
+
+        document.getElementById('simulateProcessing').addEventListener('click', () => {
+            simulateProcessingState();
+        });
+
+        document.getElementById('simulateComplete').addEventListener('click', () => {
+            simulateCompleteState();
+        });
+
+        // Reset
+        document.getElementById('resetDemo').addEventListener('click', () => {
+            resetDemo();
+        });
+
+        function startFullDemo() {
+            isRunning = true;
+            currentProgress = 0;
+            startTime = Date.now();
+
+            // Clear intervals
+            if (progressInterval) clearInterval(progressInterval);
+            if (elapsedInterval) clearInterval(elapsedInterval);
+
+            // Start elapsed time counter
+            elapsedInterval = setInterval(updateElapsedTime, 100);
+
+            // Simulate progress stages
+            simulateProgress();
+        }
+
+        function simulateProgress() {
+            let stage = 'queued';
+            let attempts = 0;
+
+            progressInterval = setInterval(() => {
+                attempts++;
+
+                if (currentProgress < 20) {
+                    // Queued stage
+                    currentProgress += Math.random() * 2;
+                    updateProgress(currentProgress, 'queued', attempts);
+                } else if (currentProgress < 90) {
+                    // Processing stage
+                    currentProgress += Math.random() * 5;
+                    updateProgress(currentProgress, 'processing', attempts);
+                } else if (currentProgress < 100) {
+                    // Finalizing
+                    currentProgress += Math.random() * 2;
+                    updateProgress(currentProgress, 'finalizing', attempts);
+                } else {
+                    // Complete
+                    currentProgress = 100;
+                    updateProgress(100, 'completed', attempts);
+                    clearInterval(progressInterval);
+                    clearInterval(elapsedInterval);
+                    isRunning = false;
+                }
+
+                currentProgress = Math.min(currentProgress, 100);
+            }, 500);
+        }
+
+        function updateProgress(progress, status, attempts = 0) {
+            const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+
+            // Update progress bar
+            progressBar.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.floor(progress)}%`;
+
+            // Update status text and details
+            let statusMsg = '';
+            let statusDetails = [];
+            let estimated = '';
+
+            switch(status) {
+                case 'queued':
+                    statusMsg = '任务已排队，等待处理中...';
+                    statusDetails = [
+                        '任务已提交到处理队列',
+                        `队列位置: 第 ${Math.floor(Math.random() * 5) + 1} 个`,
+                        '服务器正在分配资源'
+                    ];
+                    estimated = '预计 2-3 分钟';
+                    break;
+
+                case 'processing':
+                    statusMsg = '正在生成视频...';
+                    statusDetails = [
+                        '正在分析提示词',
+                        '生成视频帧',
+                        `已处理 ${Math.floor(progress * 1.5)} / 150 帧`,
+                        '应用视觉效果和优化'
+                    ];
+                    if (progress > 30) {
+                        const rate = elapsed / progress;
+                        const remaining = Math.floor(rate * (100 - progress));
+                        estimated = formatTime(remaining);
+                    }
+                    break;
+
+                case 'finalizing':
+                    statusMsg = '正在完成最后处理...';
+                    statusDetails = [
+                        '视频渲染完成',
+                        '正在编码输出文件',
+                        '准备下载链接'
+                    ];
+                    estimated = '几秒钟';
+                    break;
+
+                case 'completed':
+                    statusMsg = '视频生成完成！';
+                    statusDetails = [
+                        '视频生成成功',
+                        '文件大小: 15.2 MB',
+                        '分辨率: 1920x1080',
+                        '时长: 10 秒'
+                    ];
+                    estimated = '完成';
+                    break;
+            }
+
+            statusText.textContent = statusMsg;
+            estimatedTime.textContent = estimated;
+
+            // Update status details
+            statusList.innerHTML = statusDetails.map(detail =>
+                `<li><i class="fas fa-chevron-right mr-1 text-xs"></i> ${detail}</li>`
+            ).join('');
+        }
+
+        function updateElapsedTime() {
+            if (!startTime) return;
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            elapsedTime.textContent = formatTime(elapsed);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+
+            if (minutes > 0) {
+                return `${minutes} 分 ${secs} 秒`;
+            }
+            return `${secs} 秒`;
+        }
+
+        function simulateQueuedState() {
+            resetDemo();
+            updateProgress(15, 'queued');
+        }
+
+        function simulateProcessingState() {
+            resetDemo();
+            startTime = Date.now() - 30000; // Simulate 30 seconds elapsed
+            updateProgress(60, 'processing');
+            updateElapsedTime();
+        }
+
+        function simulateCompleteState() {
+            resetDemo();
+            startTime = Date.now() - 120000; // Simulate 2 minutes elapsed
+            updateProgress(100, 'completed');
+            updateElapsedTime();
+        }
+
+        function resetDemo() {
+            isRunning = false;
+            currentProgress = 0;
+            startTime = null;
+
+            if (progressInterval) clearInterval(progressInterval);
+            if (elapsedInterval) clearInterval(elapsedInterval);
+
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            statusText.textContent = '等待开始...';
+            elapsedTime.textContent = '0 秒';
+            estimatedTime.textContent = '未知';
+            statusList.innerHTML = '<li><i class="fas fa-info-circle mr-1"></i> 点击"开始生成演示"按钮开始</li>';
+        }
+    </script>
+</body>
+</html>

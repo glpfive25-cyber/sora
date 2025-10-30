@@ -24,5 +24,16 @@ logs/
 *.log
 
 # Test files
-test-api.js
+test-*.js
+test-*.png
 example.js
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+nul
+
+# Test images
+image*.png
+image copy*.png
