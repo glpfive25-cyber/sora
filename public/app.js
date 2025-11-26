@@ -550,38 +550,37 @@ async function handleVideoSubmit(e) {
         // Parse model selection
         const modelValue = modelSelect ? modelSelect.value : 'sora_video2';
 
-        // 将旧模型名称映射到新的 API 格式
-        let model = 'sora-2'; // 默认使用 sora-2
-        let aspect_ratio = '16:9'; // 默认横屏
-        let duration = '10'; // 默认 10 秒
-        let hd = false; // 默认不使用高清
+        // Extract model information
+        let model = modelValue.replace(/_/g, '_');
+        let orientation = 'landscape';
+        let duration = 10;
 
-        // 解析模型值
-        if (modelValue === 'sora_video2' || modelValue === 'sora_video2-landscape') {
-            model = 'sora-2';
-            aspect_ratio = '16:9';
-            duration = '10';
-        } else if (modelValue === 'sora_video2-landscape-15s') {
-            model = 'sora-2-pro';
-            aspect_ratio = '16:9';
-            duration = '15';
-        } else if (modelValue === 'sora_video2-portrait') {
-            model = 'sora-2';
-            aspect_ratio = '9:16';
-            duration = '10';
-        } else if (modelValue === 'sora_video2-portrait-15s') {
-            model = 'sora-2-pro';
-            aspect_ratio = '9:16';
-            duration = '15';
+        // Parse based on model type
+        if (modelValue === 'sora_image') {
+            // Image generation model
+            model = 'sora_image';
+        } else if (modelValue === 'sora_video2') {
+            // Standard video model
+            model = 'sora_video2';
+        } else if (modelValue.includes('landscape')) {
+            model = modelValue;
+            orientation = 'landscape';
+            duration = modelValue.includes('15s') ? 15 : 10;
+        } else if (modelValue.includes('portrait')) {
+            model = modelValue;
+            orientation = 'portrait';
+            duration = modelValue.includes('15s') ? 15 : 10;
         }
 
         const requestBody = {
             prompt: prompt,
             model: model,
-            aspect_ratio: aspect_ratio,
-            duration: duration,
-            hd: hd,
-            useStream: true // 启用轮询模式获取进度
+            options: {
+                orientation: orientation,
+                duration: duration,
+                resolution: '1080p'
+            },
+            useStream: true // 启用流式响应获取进度
         };
 
         // 使用智能重试机制生成视频

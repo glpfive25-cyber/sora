@@ -106,7 +106,7 @@ app.post('/api/completion', async (req, res) => {
 // Video generation - Using Chat API format (支持流式和非流式)
 app.post('/api/video/generate', async (req, res) => {
   try {
-    const { prompt, image, model, aspect_ratio, duration, hd, useStream } = req.body;
+    const { prompt, image, options, model, useStream } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
@@ -122,22 +122,12 @@ app.post('/api/video/generate', async (req, res) => {
       ? new Sora2(customApiKey, customBaseUrl, customApiKey, customBaseUrl) // 使用相同的配置
       : sora;
 
-    // 构建视频生成选项（新 API 格式）
+    // 将图片数据传递给视频生成选项
     const videoOptions = {
-      model: model || 'sora-2',
-      aspect_ratio: aspect_ratio || '16:9',
-      duration: duration || '10',
-      hd: hd || false,
+      ...options,
+      model: model, // 添加模型参数
       image: image // base64编码的图片数据或URL
     };
-
-    console.log('[Server] Video generation request:', {
-      model: videoOptions.model,
-      aspect_ratio: videoOptions.aspect_ratio,
-      duration: videoOptions.duration,
-      hd: videoOptions.hd,
-      hasImage: !!image
-    });
 
     // 如果请求使用流式模式，使用流式生成
     if (useStream) {
