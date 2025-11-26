@@ -12,18 +12,27 @@ function getApiConfig() {
     }
     return {
         apiKey: '',
-        baseUrl: ''
+        baseUrl: '',
+        characterApiKey: '',
+        characterBaseUrl: ''
     };
 }
 
-function saveApiConfig(apiKey, baseUrl) {
+function saveApiConfig(apiKey, baseUrl, characterApiKey, characterBaseUrl) {
     try {
         const config = {
             apiKey: apiKey || '',
-            baseUrl: baseUrl || ''
+            baseUrl: baseUrl || '',
+            characterApiKey: characterApiKey || '',
+            characterBaseUrl: characterBaseUrl || ''
         };
         localStorage.setItem(API_CONFIG_KEY, JSON.stringify(config));
-        console.log('API config saved:', { hasKey: !!config.apiKey, baseUrl: config.baseUrl });
+        console.log('API config saved:', { 
+            hasKey: !!config.apiKey,
+            hasCharacterKey: !!config.characterApiKey,
+            baseUrl: config.baseUrl,
+            characterBaseUrl: config.characterBaseUrl 
+        });
         return true;
     } catch (error) {
         console.error('Error saving API config:', error);
@@ -133,6 +142,9 @@ const advancedSettings = document.getElementById('advancedSettings');
 const maskUpload = document.getElementById('maskUpload');
 const historyGrid = document.getElementById('historyGrid');
 
+// Chat elements (may not exist if chat mode is not enabled)
+const messagesContainer = document.getElementById('messagesContainer');
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -200,6 +212,67 @@ function setupEventListeners() {
         });
     }
 
+    // Toggle Character API Key visibility
+    const toggleCharacterApiKey = document.getElementById('toggleCharacterApiKey');
+    const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
+    
+    if (toggleCharacterApiKey && apiCharacterKeyInput) {
+        toggleCharacterApiKey.addEventListener('click', () => {
+            const icon = toggleCharacterApiKey.querySelector('i');
+            if (apiCharacterKeyInput.type === 'password') {
+                apiCharacterKeyInput.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            } else {
+                apiCharacterKeyInput.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        });
+    }
+
+    // Toggle Advanced Settings
+    const toggleAdvancedSettings = document.getElementById('toggleAdvancedSettings');
+    const advancedSettingsSection = document.getElementById('advancedSettingsSection');
+    const advancedModeText = document.getElementById('advancedModeText');
+    const settingsInfoText = document.getElementById('settingsInfoText');
+    
+    if (toggleAdvancedSettings && advancedSettingsSection) {
+        toggleAdvancedSettings.addEventListener('click', () => {
+            const isHidden = advancedSettingsSection.style.display === 'none';
+            
+            if (isHidden) {
+                // 显示高级选项
+                advancedSettingsSection.style.display = 'block';
+                if (advancedModeText) advancedModeText.textContent = '隐藏高级选项';
+                if (settingsInfoText) {
+                    settingsInfoText.innerHTML = `
+                        <strong>高级配置：</strong><br>
+                        • 标准 API 用于视频和图像生成，成本较低<br>
+                        • Pro API 用于角色功能，只有 Pro 支持角色<br>
+                        • 可以为不同功能配置不同的 API Key
+                    `;
+                }
+            } else {
+                // 隐藏高级选项
+                advancedSettingsSection.style.display = 'none';
+                if (advancedModeText) advancedModeText.textContent = '显示高级选项';
+                if (settingsInfoText) {
+                    settingsInfoText.innerHTML = `
+                        <strong>快速开始：</strong><br>
+                        • 留空使用内置免费 API，无需配置即可使用<br>
+                        • 如需使用自己的 API，填写 API 密钥即可<br>
+                        • 点击"显示高级选项"可配置独立的 Pro API
+                    `;
+                }
+            }
+        });
+    }
+
     // Video Mode Events
     if (videoForm) videoForm.addEventListener('submit', handleVideoSubmit);
     if (resetBtn) resetBtn.addEventListener('click', resetVideoForm);
@@ -225,6 +298,32 @@ function setupEventListeners() {
     // Video Player Events
     if (downloadBtn) downloadBtn.addEventListener('click', downloadVideo);
     if (shareBtn) shareBtn.addEventListener('click', shareVideo);
+
+    // 字符计数功能
+    setupCharacterCount();
+}
+
+// 设置字符计数
+function setupCharacterCount() {
+    const videoPromptEl = document.getElementById('videoPrompt');
+    const charCountEl = document.getElementById('promptCharCount');
+    
+    if (videoPromptEl && charCountEl) {
+        const updateCount = () => {
+            const count = videoPromptEl.value.length;
+            charCountEl.textContent = `${count} 字`;
+            // 根据字数给出颜色提示
+            if (count < 10) {
+                charCountEl.style.color = '#ef4444'; // 红色 - 太短
+            } else if (count < 30) {
+                charCountEl.style.color = '#fbbf24'; // 黄色 - 可以更详细
+            } else {
+                charCountEl.style.color = '#22c55e'; // 绿色 - 很好
+            }
+        };
+        videoPromptEl.addEventListener('input', updateCount);
+        updateCount(); // 初始化
+    }
 }
 
 function initializeVideoMode() {
@@ -243,12 +342,20 @@ function loadSettingsToForm() {
     const config = getApiConfig();
     const apiKeyInput = document.getElementById('apiKeyInput');
     const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
+    const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
+    const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
     if (apiKeyInput) {
         apiKeyInput.value = config.apiKey || '';
     }
     if (apiBaseUrlInput) {
         apiBaseUrlInput.value = config.baseUrl || '';
+    }
+    if (apiCharacterKeyInput) {
+        apiCharacterKeyInput.value = config.characterApiKey || '';
+    }
+    if (apiCharacterUrlInput) {
+        apiCharacterUrlInput.value = config.characterBaseUrl || '';
     }
 
     updateApiStatusIndicator(config);
@@ -257,15 +364,19 @@ function loadSettingsToForm() {
 function handleSaveSettings() {
     const apiKeyInput = document.getElementById('apiKeyInput');
     const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
+    const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
+    const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
     const settingsModal = document.getElementById('settingsModal');
 
     const apiKey = apiKeyInput.value.trim();
     const baseUrl = apiBaseUrlInput.value.trim();
+    const characterApiKey = apiCharacterKeyInput.value.trim();
+    const characterBaseUrl = apiCharacterUrlInput.value.trim();
 
-    if (saveApiConfig(apiKey, baseUrl)) {
+    if (saveApiConfig(apiKey, baseUrl, characterApiKey, characterBaseUrl)) {
         // Show success message
         showNotification('设置已保存', 'success');
-        updateApiStatusIndicator({ apiKey, baseUrl });
+        updateApiStatusIndicator({ apiKey, baseUrl, characterApiKey, characterBaseUrl });
 
         // Close modal
         setTimeout(() => {
@@ -282,11 +393,15 @@ function handleResetSettings() {
             // Clear form
             const apiKeyInput = document.getElementById('apiKeyInput');
             const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
+            const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
+            const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
             if (apiKeyInput) apiKeyInput.value = '';
             if (apiBaseUrlInput) apiBaseUrlInput.value = '';
+            if (apiCharacterKeyInput) apiCharacterKeyInput.value = '';
+            if (apiCharacterUrlInput) apiCharacterUrlInput.value = '';
 
-            updateApiStatusIndicator({ apiKey: '', baseUrl: '' });
+            updateApiStatusIndicator({ apiKey: '', baseUrl: '', characterApiKey: '', characterBaseUrl: '' });
             showNotification('已恢复默认设置', 'success');
         } else {
             showNotification('重置失败，请重试', 'error');
@@ -435,37 +550,38 @@ async function handleVideoSubmit(e) {
         // Parse model selection
         const modelValue = modelSelect ? modelSelect.value : 'sora_video2';
 
-        // Extract model information
-        let model = modelValue.replace(/_/g, '_');
-        let orientation = 'landscape';
-        let duration = 10;
+        // 将旧模型名称映射到新的 API 格式
+        let model = 'sora-2'; // 默认使用 sora-2
+        let aspect_ratio = '16:9'; // 默认横屏
+        let duration = '10'; // 默认 10 秒
+        let hd = false; // 默认不使用高清
 
-        // Parse based on model type
-        if (modelValue === 'sora_image') {
-            // Image generation model
-            model = 'sora_image';
-        } else if (modelValue === 'sora_video2') {
-            // Standard video model
-            model = 'sora_video2';
-        } else if (modelValue.includes('landscape')) {
-            model = modelValue;
-            orientation = 'landscape';
-            duration = modelValue.includes('15s') ? 15 : 10;
-        } else if (modelValue.includes('portrait')) {
-            model = modelValue;
-            orientation = 'portrait';
-            duration = modelValue.includes('15s') ? 15 : 10;
+        // 解析模型值
+        if (modelValue === 'sora_video2' || modelValue === 'sora_video2-landscape') {
+            model = 'sora-2';
+            aspect_ratio = '16:9';
+            duration = '10';
+        } else if (modelValue === 'sora_video2-landscape-15s') {
+            model = 'sora-2-pro';
+            aspect_ratio = '16:9';
+            duration = '15';
+        } else if (modelValue === 'sora_video2-portrait') {
+            model = 'sora-2';
+            aspect_ratio = '9:16';
+            duration = '10';
+        } else if (modelValue === 'sora_video2-portrait-15s') {
+            model = 'sora-2-pro';
+            aspect_ratio = '9:16';
+            duration = '15';
         }
 
         const requestBody = {
             prompt: prompt,
             model: model,
-            options: {
-                orientation: orientation,
-                duration: duration,
-                resolution: '1080p'
-            },
-            useStream: true // 启用流式响应获取进度
+            aspect_ratio: aspect_ratio,
+            duration: duration,
+            hd: hd,
+            useStream: true // 启用轮询模式获取进度
         };
 
         // 使用智能重试机制生成视频
@@ -488,6 +604,30 @@ async function handleVideoSubmit(e) {
         if (error.name === 'AbortError') {
             errorMessage = '⏱️ 请求超时（超过5分钟）';
             suggestions = '建议：选择较短的视频选项（非15秒版本）或稍后重试';
+        } else if (error.message.includes('503')) {
+            errorMessage = '⚠️ API 服务暂时不可用 (503)';
+            suggestions = `
+                <div class="mt-3 text-left text-sm">
+                    <p class="font-semibold mb-2">可能的原因：</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>🔑 <strong>API Key 无效或已过期</strong></li>
+                        <li>🚫 API 服务暂时维护或过载</li>
+                        <li>💳 账户余额不足或配额用尽</li>
+                        <li>🌐 上游服务暂时不可用</li>
+                    </ul>
+                    <p class="font-semibold mt-3 mb-2">💡 推荐解决方案：</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>✅ <strong>检查 API Key</strong>：确认 .env 文件中的 SORA_API_KEY 完整且有效</li>
+                        <li>✅ <strong>检查账户状态</strong>：登录 API 提供商网站查看余额和配额</li>
+                        <li>✅ <strong>等待重试</strong>：服务可能正在维护，等待 5-10 分钟后重试</li>
+                        <li>✅ <strong>联系支持</strong>：如果问题持续，联系 API 提供商技术支持</li>
+                    </ul>
+                    <p class="mt-3 text-xs text-gray-500">
+                        <strong>提示：</strong>503 错误通常是临时性的，表示服务暂时不可用。<br>
+                        如果频繁出现此错误，请检查您的 API 配置和账户状态。
+                    </p>
+                </div>
+            `;
         } else if (error.message.includes('504')) {
             errorMessage = '⏱️ 服务器处理超时 (504)';
             suggestions = `
@@ -629,10 +769,19 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             const errorData = await response.json().catch(() => ({ error: 'Network error' }));
             console.log(`[Video] Error response:`, { status: response.status, errorData });
 
+            // 如果是503（服务不可用）且还有重试次数，自动重试
+            if (response.status === 503 && retryCount < MAX_RETRIES) {
+                console.log(`[Video] 503 Service Unavailable, retrying in ${RETRY_DELAY}ms... (${retryCount + 1}/${MAX_RETRIES})`);
+                updateProgressMessage(`⚠️ API 服务暂时不可用 (503)\n等待${Math.round(RETRY_DELAY/1000)}秒后重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES + 1})`);
+
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                return await attemptVideoGeneration(requestBody, prompt, model, retryCount + 1);
+            }
+
             // 如果是504且还有重试次数，自动重试
             if (response.status === 504 && retryCount < MAX_RETRIES) {
                 console.log(`[Video] 504 timeout, retrying in ${RETRY_DELAY}ms... (${retryCount + 1}/${MAX_RETRIES})`);
-                updateProgressMessage(`⏱️ 服务器超时，等待${Math.round(RETRY_DELAY/1000)}秒后重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES}，下次使用流式模式)`);
+                updateProgressMessage(`⏱️ 服务器超时，等待${Math.round(RETRY_DELAY/1000)}秒后重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES + 1}，下次使用流式模式)`);
 
                 await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                 return await attemptVideoGeneration(requestBody, prompt, model, retryCount + 1);
@@ -659,22 +808,35 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
     } catch (error) {
         console.error(`[Video] Attempt ${retryCount + 1} error:`, error);
 
-        // 如果是超时或网络错误，且还有重试次数，自动重试
+        // 如果是超时、网络错误或503错误，且还有重试次数，自动重试
         const isRetryable = (
             error.name === 'AbortError' ||
+            error.statusCode === 503 ||
+            error.statusCode === 504 ||
+            error.message.includes('503') ||
             error.message.includes('504') ||
             error.message.includes('timeout') ||
             error.message.includes('ETIMEDOUT') ||
             error.message.includes('ECONNRESET') ||
-            error.message.toLowerCase().includes('server took too long')
+            error.message.toLowerCase().includes('server took too long') ||
+            error.message.toLowerCase().includes('service unavailable')
         );
 
         if (isRetryable && retryCount < MAX_RETRIES) {
-            const retryDelay = 3000 + (retryCount * 2000); // 与上面保持一致
+            const retryDelay = 3000 + (retryCount * 2000); // 渐进延迟: 3s, 5s, 7s
             console.log(`[Video] Retryable error detected, retrying in ${retryDelay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
 
-            const errorPreview = error.message.length > 50 ? error.message.slice(0, 50) + '...' : error.message;
-            updateProgressMessage(`⚠️ ${errorPreview}\n\n等待${Math.round(retryDelay/1000)}秒后自动重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES}，下次使用流式模式)`);
+            // 根据错误类型显示不同的提示
+            let errorType = '服务错误';
+            if (error.statusCode === 503 || error.message.includes('503')) {
+                errorType = 'API 服务暂时不可用 (503)';
+            } else if (error.statusCode === 504 || error.message.includes('504')) {
+                errorType = '服务器超时 (504)';
+            } else if (error.message.includes('timeout')) {
+                errorType = '请求超时';
+            }
+
+            updateProgressMessage(`⚠️ ${errorType}\n\n等待 ${Math.round(retryDelay/1000)} 秒后自动重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES + 1})`);
 
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             return await attemptVideoGeneration(requestBody, prompt, model, retryCount + 1);
@@ -743,8 +905,15 @@ async function handleStreamResponse(response, prompt, model) {
                             handleVideoResponse(parsed, prompt, model);
                         }
                     } else if (parsed.type === 'error') {
-                        // 错误
-                        throw new Error(parsed.error || 'Stream error');
+                        // 错误事件
+                        const errorMsg = parsed.error || 'Stream error';
+                        const statusCode = parsed.statusCode || 500;
+                        console.error('[Video Stream] Error event:', errorMsg, 'Status:', statusCode);
+                        
+                        // 构造包含状态码的错误，以便外层可以识别并重试
+                        const error = new Error(errorMsg);
+                        error.statusCode = statusCode;
+                        throw error;
                     } else if (parsed.choices) {
                         // 标准 Chat 格式响应
                         const content = parsed.choices?.[0]?.delta?.content || parsed.choices?.[0]?.message?.content;
@@ -755,7 +924,10 @@ async function handleStreamResponse(response, prompt, model) {
                         }
                     }
                 } catch (e) {
-                    console.warn('[Video Stream] Parse error:', e, 'Line:', jsonStr);
+                    console.error('[Video Stream] Parse error:', e);
+                    console.error('[Video Stream] Problematic line:', jsonStr);
+                    // 检查是否是错误消息 - 不要在这里抛出错误，继续处理其他行
+                    // 错误会在 parsed.type === 'error' 分支中处理
                 }
             }
         }
@@ -2063,6 +2235,12 @@ async function handleChatSubmit(e) {
 }
 
 function addMessage(role, content) {
+    // Only add message if messagesContainer exists (chat mode is enabled)
+    if (!messagesContainer) {
+        console.log('[Chat] Chat mode not available, skipping message add');
+        return;
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message flex items-start space-x-3';
 
@@ -2100,6 +2278,12 @@ function addMessage(role, content) {
 }
 
 function createAssistantMessagePlaceholder(messageId) {
+    // Only create placeholder if messagesContainer exists (chat mode is enabled)
+    if (!messagesContainer) {
+        console.log('[Chat] Chat mode not available, skipping placeholder creation');
+        return null;
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message flex items-start space-x-3';
     messageDiv.id = messageId;
@@ -2131,7 +2315,9 @@ function updateStreamingMessage(messageId, content) {
     const messageContent = messageDiv.querySelector('.max-w-2xl');
     if (messageContent) {
         messageContent.innerHTML = formatMessage(content);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
     }
 }
 
@@ -2161,6 +2347,12 @@ function setInputState(enabled) {
 }
 
 function clearChat() {
+    // Only clear chat if messagesContainer exists (chat mode is enabled)
+    if (!messagesContainer) {
+        console.log('[Chat] Chat mode not available, skipping clear');
+        return;
+    }
+
     if (confirm(window.i18n.t('confirmClearChat'))) {
         chatHistory = [];
         messagesContainer.innerHTML = `
@@ -2179,14 +2371,25 @@ function saveChatHistory() {
 }
 
 function loadChatHistory() {
-    const saved = localStorage.getItem('sora2-chat-history');
-    if (saved) {
-        chatHistory = JSON.parse(saved);
-        if (chatHistory.length > 0 && messagesContainer) {
-            chatHistory.forEach(msg => {
-                addMessage(msg.role, msg.content);
-            });
+    // Only load chat history if messagesContainer exists (chat mode is enabled)
+    if (!messagesContainer) {
+        console.log('[Chat] Chat mode not available, skipping history load');
+        return;
+    }
+
+    try {
+        const saved = localStorage.getItem('sora2-chat-history');
+        if (saved) {
+            chatHistory = JSON.parse(saved);
+            if (chatHistory.length > 0) {
+                chatHistory.forEach(msg => {
+                    addMessage(msg.role, msg.content);
+                });
+            }
         }
+    } catch (error) {
+        console.error('[Chat] Error loading chat history:', error);
+        chatHistory = [];
     }
 }
 

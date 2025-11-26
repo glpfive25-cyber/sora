@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色功能调试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0.5rem;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        textarea, input, select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.5rem;
+            color: #fff;
+            margin: 0.5rem 0;
+        }
+        .result {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .info { border-left: 4px solid #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🔧 角色功能调试页面</h1>
+
+    <!-- 角色创建测试 -->
+    <div class="container">
+        <h2>1. 测试角色创建</h2>
+        <p>测试直接调用角色创建API</p>
+        <button class="btn" onclick="testCreateCharacter()">测试创建角色</button>
+        <div id="createResult" class="result info">等待测试...</div>
+    </div>
+
+    <!-- 角色列表测试 -->
+    <div class="container">
+        <h2>2. 检查角色存储</h2>
+        <p>检查localStorage中的角色数据</p>
+        <button class="btn" onclick="checkCharacterStorage()">检查角色存储</button>
+        <div id="storageResult" class="result info">等待检查...</div>
+    </div>
+
+    <!-- 角色选择测试 -->
+    <div class="container">
+        <h2>3. 测试角色选择</h2>
+        <p>测试角色选择下拉菜单</p>
+        <select id="testCharacterSelect">
+            <option value="">选择角色...</option>
+        </select>
+        <button class="btn" onclick="updateTestSelect()">更新选择列表</button>
+        <div id="selectResult" class="result info">等待测试...</div>
+    </div>
+
+    <!-- API测试 -->
+    <div class="container">
+        <h2>4. API健康检查</h2>
+        <p>测试所有相关API端点</p>
+        <button class="btn" onclick="testAPIHealth()">API健康检查</button>
+        <div id="apiResult" class="result info">等待检查...</div>
+    </div>
+
+    <script>
+        // 模拟角色数据用于测试
+        const testCharacterData = {
+            id: 'ch_test123',
+            username: 'testcharacter',
+            permalink: 'https://sora.chatgpt.com/profile/testcharacter',
+            profile_picture_url: 'https://via.placeholder.com/60'
+        };
+
+        // 测试角色创建
+        async function testCreateCharacter() {
+            const result = document.getElementById('createResult');
+            result.className = 'result info';
+            result.textContent = '正在测试角色创建...';
+
+            try {
+                const response = await fetch('/api/character/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        videoUrl: 'https://filesystem.site/cdn/20251030/javYrU4etHVFDqg8by7mViTWHlMOZy.mp4',
+                        timestamps: '1,3'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent = `✅ 角色创建成功!\n\n${JSON.stringify(data, null, 2)}`;
+
+                    // 测试存储
+                    if (data.id && data.username) {
+                        saveCharacterToStorage(data);
+                    }
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ 角色创建失败!\n\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 请求错误: ${error.message}`;
+            }
+        }
+
+        // 保存角色到localStorage
+        function saveCharacterToStorage(character) {
+            try {
+                let characterHistory = JSON.parse(localStorage.getItem('sora2-character-history') || '[]');
+
+                // 添加时间戳和测试数据
+                const fullCharacter = {
+                    ...character,
+                    createdAt: Date.now(),
+                    videoUrl: 'https://filesystem.site/cdn/20251030/javYrU4etHVFDqg8by7mViTWHlMOZy.mp4',
+                    timestamps: '1,3'
+                };
+
+                characterHistory.unshift(fullCharacter);
+
+                if (characterHistory.length > 20) {
+                    characterHistory = characterHistory.slice(0, 20);
+                }
+
+                localStorage.setItem('sora2-character-history', JSON.stringify(characterHistory));
+                console.log('[DEBUG] Character saved to localStorage:', fullCharacter);
+
+                return true;
+            } catch (error) {
+                console.error('[DEBUG] Failed to save character:', error);
+                return false;
+            }
+        }
+
+        // 检查角色存储
+        function checkCharacterStorage() {
+            const result = document.getElementById('storageResult');
+
+            try {
+                const stored = localStorage.getItem('sora2-character-history');
+
+                if (stored) {
+                    const characterHistory = JSON.parse(stored);
+                    result.className = 'result success';
+                    result.textContent = `✅ 找到 ${characterHistory.length} 个角色:\n\n${JSON.stringify(characterHistory, null, 2)}`;
+                } else {
+                    result.className = 'result info';
+                    result.textContent = 'ℹ️ 没有找到角色数据';
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 读取存储失败: ${error.message}`;
+            }
+        }
+
+        // 更新测试选择列表
+        function updateTestSelect() {
+            const result = document.getElementById('selectResult');
+            const select = document.getElementById('testCharacterSelect');
+
+            try {
+                const stored = localStorage.getItem('sora2-character-history');
+
+                if (stored) {
+                    const characterHistory = JSON.parse(stored);
+
+                    // 清空现有选项
+                    select.innerHTML = '<option value="">选择角色...</option>';
+
+                    // 添加角色选项
+                    characterHistory.forEach(character => {
+                        const option = document.createElement('option');
+                        option.value = `@${character.username}`;
+                        option.textContent = `@${character.username}`;
+                        select.appendChild(option);
+                    });
+
+                    result.className = 'result success';
+                    result.textContent = `✅ 已更新选择列表，共 ${characterHistory.length} 个角色`;
+                } else {
+                    result.className = 'result info';
+                    result.textContent = 'ℹ️ 没有角色数据可更新';
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 更新失败: ${error.message}`;
+            }
+        }
+
+        // API健康检查
+        async function testAPIHealth() {
+            const result = document.getElementById('apiResult');
+            result.className = 'result info';
+            result.textContent = '正在检查API健康状态...';
+
+            const tests = [
+                { name: '服务器健康检查', url: '/api/health' },
+                { name: '视频上传接口', url: '/api/upload/video' }
+            ];
+
+            let results = [];
+
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    results.push({
+                        name: test.name,
+                        status: response.ok ? '✅ OK' : '❌ ERROR',
+                        code: response.status
+                    });
+                } catch (error) {
+                    results.push({
+                        name: test.name,
+                        status: '❌ ERROR',
+                        error: error.message
+                    });
+                }
+            }
+
+            result.className = results.some(r => r.status.includes('ERROR')) ? 'result error' : 'result success';
+            result.textContent = results.map(r => `${r.status} ${r.name}${r.code ? ` (${r.code})` : ''}${r.error ? ` - ${r.error}` : ''}`).join('\n');
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            console.log('[DEBUG] Debug page loaded');
+
+            // 添加测试角色到存储
+            if (!localStorage.getItem('sora2-character-history')) {
+                console.log('[DEBUG] Adding test character to storage');
+                saveCharacterToStorage(testCharacterData);
+            }
+        });
+    </script>
+</body>
+</html>
