@@ -276,33 +276,40 @@ class Sora2 {
           pollCount++;
           
           try {
-            const statusResponse = await this.client.get(`/v2/videos/${taskId}`);
-            const status = statusResponse.data;
+            const statusResponse = await this.client.get(`/v2/videos/generations/${taskId}`);
+            const taskData = statusResponse.data;
             
-            console.log(`[Sora2] Poll ${pollCount}/${maxPolls}, Status:`, status.status);
+            console.log(`[Sora2] Poll ${pollCount}/${maxPolls}, Status:`, taskData.status, 'Progress:', taskData.progress);
 
             // 调用进度回调
-            if (onProgress && status.progress !== undefined) {
-              const progressText = `生成进度: ${status.progress}%`;
-              onProgress(progressText, progressText);
+            if (onProgress) {
+              const progressText = taskData.progress || '处理中...';
+              const statusText = this.getStatusText(taskData.status);
+              onProgress(`${statusText}: ${progressText}`, progressText);
             }
 
             // 检查任务状态
-            if (status.status === 'completed' || status.status === 'success') {
+            // 状态枚举: NOT_START, IN_PROGRESS, SUCCESS, FAILURE
+            if (taskData.status === 'SUCCESS') {
               const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
               console.log(`[Sora2] Video generation completed in ${elapsed}s`);
+              console.log(`[Sora2] Video URL:`, taskData.data?.output);
+              
               resolve({
                 task_id: taskId,
                 status: 'completed',
-                video_url: status.video_url || status.url,
-                data: status
+                video_url: taskData.data?.output,
+                progress: taskData.progress,
+                data: taskData
               });
-            } else if (status.status === 'failed' || status.status === 'error') {
-              reject(new Error(status.error || status.message || 'Video generation failed'));
+            } else if (taskData.status === 'FAILURE') {
+              const errorMsg = taskData.fail_reason || 'Video generation failed';
+              console.error(`[Sora2] Video generation failed:`, errorMsg);
+              reject(new Error(errorMsg));
             } else if (pollCount >= maxPolls) {
-              reject(new Error('Polling timeout: Maximum attempts reached'));
+              reject(new Error('Polling timeout: Maximum attempts reached (10 minutes)'));
             } else {
-              // 继续轮询
+              // NOT_START 或 IN_PROGRESS，继续轮询
               setTimeout(poll, pollInterval);
             }
           } catch (error) {
@@ -321,7 +328,7 @@ class Sora2 {
       });
     } catch (error) {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.error(`[Sora2] Video stream error after ${elapsed}s:`, {
+      console.error(`[Sora2] Video generation error after ${elapsed}s:`, {
         status: error.response?.status,
         code: error.code,
         message: error.message
@@ -333,15 +340,26 @@ class Sora2 {
       }
 
       if (error.response?.status === 504) {
-        throw new Error('Video stream timeout (504). API gateway timeout - the upstream service may be overloaded.');
+        throw new Error('Video generation timeout (504). API gateway timeout - the upstream service may be overloaded.');
       }
 
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        throw new Error(`Stream timeout after ${elapsed}s. The video generation is taking longer than expected.`);
+        throw new Error(`Request timeout after ${elapsed}s. The video generation is taking longer than expected.`);
       }
 
-      throw new Error(`Video stream error: ${error.response?.data?.error?.message || error.message}`);
+      throw new Error(`Video generation error: ${error.response?.data?.error?.message || error.message}`);
     }
+  }
+
+  // 获取状态文本
+  getStatusText(status) {
+    const statusMap = {
+      'NOT_START': '等待开始',
+      'IN_PROGRESS': '生成中',
+      'SUCCESS': '完成',
+      'FAILURE': '失败'
+    };
+    return statusMap[status] || status;
   }
 
   // 查询视频任务状态 - 已废弃，Chat API 直接返回结果
@@ -574,85 +592,49 @@ class Sora2 {
     }
   }
 
-  // 带角色创建视频
+  // 带角色创建视频 - 使用新的 V2 API
   async createVideoWithCharacter(options = {}) {
     try {
-      console.log(`[Sora2] Creating video with character, original model: ${options.model}`);
-      console.log(`[Sora2] Using Chat API format for character video`);
+      console.log(`[Sora2] Creating video with character`);
+      console.log(`[Sora2] Using V2 API format for character video`);
       console.log(`[Sora2] Using character API endpoint: ${this.characterBaseURL}`);
 
-      // 模型名称映射：将前端的模型名映射到 API 支持的模型名
-      // 优先尝试使用原始模型名（如 sora_video2），如果不支持再尝试其他
-      const modelMapping = {
-        'sora_video2': 'sora_video2',
-        'sora_video2-landscape': 'sora_video2',
-        'sora_video2-landscape-15s': 'sora_video2',
-        'sora_video2-portrait': 'sora_video2',
-        'sora_video2-portrait-15s': 'sora_video2',
-        'sora-2': 'sora-2',
-        'sora-2-pro': 'sora-2-pro',
-        'sora-2-characters': 'sora-2-characters'
+      // 使用指定的模型或默认模型
+      const model = options.model || 'sora-2-pro';
+      
+      // 构建请求数据（V2 API 格式）
+      const requestData = {
+        prompt: options.prompt || '',
+        model: model,
+        aspect_ratio: options.aspect_ratio || options.orientation === 'portrait' ? '9:16' : '16:9',
+        duration: options.duration || '10',
+        hd: options.hd || false,
+        watermark: options.watermark || false,
+        private: options.private || false
       };
 
-      // 映射模型名称
-      const originalModel = options.model || 'sora_video2';
-      const mappedModel = modelMapping[originalModel] || originalModel;
-      
-      console.log(`[Sora2] Model mapping: ${originalModel} -> ${mappedModel}`);
-
-      // 构建提示词，包含角色信息
-      let prompt = options.prompt || '';
-      
-      // 如果有角色用户名，添加到提示词中
-      if (options.character_username) {
-        prompt = `@${options.character_username} ${prompt}`;
-        console.log('[Sora2] Added character username to prompt:', options.character_username);
+      // 添加角色信息
+      if (options.character_url && options.character_timestamps) {
+        requestData.character_url = options.character_url;
+        requestData.character_timestamps = options.character_timestamps;
+        console.log('[Sora2] Added character info:', {
+          url: options.character_url,
+          timestamps: options.character_timestamps
+        });
       }
 
-      // 构建消息内容
-      const contentArray = [];
-      
-      // 添加文本提示词
-      contentArray.push({
-        type: 'text',
-        text: prompt
-      });
-
-      // 如果有图片，添加图片URL到内容中
+      // 如果有图片，添加到 images 数组
       if (options.images && options.images.length > 0) {
-        options.images.forEach(imageUrl => {
-          contentArray.push({
-            type: 'image_url',
-            image_url: {
-              url: imageUrl
-            }
-          });
-        });
+        requestData.images = options.images;
         console.log('[Sora2] Added', options.images.length, 'images to request');
       }
 
-      // 构建消息数组
-      const messages = [
-        {
-          role: 'user',
-          content: contentArray
-        }
-      ];
+      console.log(`[Sora2] Using model: ${model}`);
+      console.log(`[Sora2] Request data:`, requestData);
 
-      console.log(`[Sora2] Using mapped model: ${mappedModel}`);
-      console.log(`[Sora2] Prompt: ${prompt}`);
-
-      // 使用 Chat API 格式调用
-      const requestData = {
-        model: mappedModel,
-        messages: messages,
-        stream: false // 非流式模式，返回任务 ID
-      };
-
-      console.log('[Sora2] Video with character request data:', JSON.stringify(requestData, null, 2));
-
-      const response = await this.characterClient.post('/v1/chat/completions', requestData, {
-        timeout: 600000 // 10分钟超时，角色视频生成可能需要更长时间
+      // 使用新的 V2 API 端点
+      const response = await this.characterClient.post('/v2/videos/generations', requestData, {
+        timeout: 60000 // 1分钟超时，任务提交应该很快
       });
 
       if (response.data && response.data.error) {
@@ -660,40 +642,18 @@ class Sora2 {
         throw new Error(response.data.error.message || response.data.error.message_zh || 'Video creation with character failed');
       }
 
-      console.log('[Sora2] Video with character creation response:', response.data);
-
-      // Chat API 返回格式不同，需要从 choices[0].message.content 中提取任务 ID
-      if (response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
-        const content = response.data.choices[0].message.content;
-        console.log('[Sora2] Response content:', content);
-
-        // 尝试从内容中提取任务 ID (格式: task_xxxxx)
-        const taskIdMatch = content.match(/task_[a-z0-9]+/i);
-        if (taskIdMatch) {
-          const taskId = taskIdMatch[0];
-          console.log('[Sora2] Extracted task ID:', taskId);
-          
-          return {
-            id: taskId,
-            status: 'pending',
-            content: content,
-            raw_response: response.data
-          };
-        } else {
-          console.warn('[Sora2] Could not extract task ID from response');
-          // 返回原始响应，让调用者处理
-          return {
-            id: response.data.id || `temp_${Date.now()}`,
-            status: 'pending',
-            content: content,
-            raw_response: response.data
-          };
-        }
+      const taskId = response.data.task_id;
+      if (!taskId) {
+        throw new Error('No task_id returned from API');
       }
 
-      // 如果响应格式不符合预期，返回原始数据
-      console.warn('[Sora2] Unexpected response format');
-      return response.data;
+      console.log('[Sora2] Video with character task submitted, ID:', taskId);
+      
+      return {
+        task_id: taskId,
+        status: 'pending',
+        data: response.data
+      };
     } catch (error) {
       console.error('[Sora2] Video with character creation error:', {
         message: error.message,
