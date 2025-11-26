@@ -299,6 +299,12 @@ function setupEventListeners() {
     if (downloadBtn) downloadBtn.addEventListener('click', downloadVideo);
     if (shareBtn) shareBtn.addEventListener('click', shareVideo);
 
+    // Image to Video Player Events
+    const imageVideoDownloadBtn = document.getElementById('imageVideoDownloadBtn');
+    const imageVideoShareBtn = document.getElementById('imageVideoShareBtn');
+    if (imageVideoDownloadBtn) imageVideoDownloadBtn.addEventListener('click', downloadImageVideo);
+    if (imageVideoShareBtn) imageVideoShareBtn.addEventListener('click', shareImageVideo);
+
     // 字符计数功能
     setupCharacterCount();
 }
@@ -694,8 +700,8 @@ async function handleImageToVideo(e) {
         generateImageVideoBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i><span>生成中（需要1-3分钟）...</span>`;
     }
 
-    // Show progress
-    showProgressIndicator();
+    // Show progress indicator for image to video
+    showImageVideoProgressIndicator();
 
     try {
         const requestBody = {
@@ -716,17 +722,23 @@ async function handleImageToVideo(e) {
             throw new Error('Video generation failed');
         }
 
-        return;
+        console.log('[Image to Video] Generation successful:', result);
+        
+        // Show video result in image to video section
+        showImageVideoResult(result);
 
     } catch (error) {
-        console.error('Error:', error);
-        hideProgressIndicator();
+        console.error('[Image to Video] Error:', error);
+        hideImageVideoProgressIndicator();
         showError('❌ 视频生成失败', error.message || '请重试');
     } finally {
         if (generateImageVideoBtn) {
             generateImageVideoBtn.disabled = false;
             generateImageVideoBtn.innerHTML = `<i class="fas fa-play"></i><span>生成视频</span>`;
         }
+        
+        // Hide progress indicator
+        hideImageVideoProgressIndicator();
     }
 }
 
@@ -925,8 +937,12 @@ async function handleStreamResponse(response, prompt, model) {
                 } catch (e) {
                     console.error('[Video Stream] Parse error:', e);
                     console.error('[Video Stream] Problematic line:', jsonStr);
-                    // 检查是否是错误消息 - 不要在这里抛出错误，继续处理其他行
-                    // 错误会在 parsed.type === 'error' 分支中处理
+                    
+                    // 如果是我们抛出的错误（带 statusCode），需要重新抛出以触发重试
+                    if (e.statusCode) {
+                        throw e;
+                    }
+                    // 其他解析错误继续处理下一行
                 }
             }
         }
@@ -1703,6 +1719,113 @@ function resetVideoForm() {
     resetVideoDisplay();
 }
 
+// Image to Video Progress and Result Functions
+let imageVideoProgressInterval = null;
+let imageVideoStartTime = null;
+
+function showImageVideoProgressIndicator() {
+    const imageVideoContainer = document.getElementById('imageVideoContainer');
+    const imageVideoProgressIndicator = document.getElementById('imageVideoProgressIndicator');
+    const imageVideoProgressBar = document.getElementById('imageVideoProgressBar');
+    const imageVideoStatusText = document.getElementById('imageVideoStatusText');
+    const imageVideoElapsedTime = document.getElementById('imageVideoElapsedTime');
+    const imageVideoEstimatedTime = document.getElementById('imageVideoEstimatedTime');
+
+    if (imageVideoContainer) imageVideoContainer.classList.add('hidden');
+    if (imageVideoProgressIndicator) imageVideoProgressIndicator.classList.remove('hidden');
+    if (imageVideoProgressBar) imageVideoProgressBar.style.width = '10%';
+    if (imageVideoStatusText) imageVideoStatusText.textContent = '正在生成视频...';
+    if (imageVideoElapsedTime) imageVideoElapsedTime.textContent = '⏱️ 视频生成通常需要 1-3 分钟，请耐心等待';
+    if (imageVideoEstimatedTime) imageVideoEstimatedTime.textContent = '💡 图像转视频可能需要更长时间（3-5分钟）';
+
+    imageVideoStartTime = Date.now();
+
+    // Update elapsed time every second
+    if (imageVideoProgressInterval) clearInterval(imageVideoProgressInterval);
+    imageVideoProgressInterval = setInterval(updateImageVideoElapsedTime, 1000);
+
+    // Simulate progress animation
+    let progress = 10;
+    const progressAnimation = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 5;
+            if (imageVideoProgressBar) {
+                imageVideoProgressBar.style.width = `${Math.min(progress, 90)}%`;
+            }
+        }
+    }, 2000);
+
+    // Store interval ID to clear it later
+    if (imageVideoProgressIndicator) {
+        imageVideoProgressIndicator.dataset.progressAnimation = progressAnimation;
+    }
+}
+
+function updateImageVideoElapsedTime() {
+    if (!imageVideoStartTime) return;
+
+    const elapsed = Math.floor((Date.now() - imageVideoStartTime) / 1000);
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+
+    let elapsedText = '';
+    if (minutes > 0) {
+        elapsedText = `已等待 ${minutes} 分 ${seconds} 秒`;
+    } else {
+        elapsedText = `已等待 ${seconds} 秒`;
+    }
+
+    const imageVideoElapsedTime = document.getElementById('imageVideoElapsedTime');
+    if (imageVideoElapsedTime) {
+        imageVideoElapsedTime.textContent = elapsedText;
+    }
+}
+
+function hideImageVideoProgressIndicator() {
+    const imageVideoProgressIndicator = document.getElementById('imageVideoProgressIndicator');
+    
+    if (imageVideoProgressIndicator) {
+        imageVideoProgressIndicator.classList.add('hidden');
+    }
+    
+    if (imageVideoProgressInterval) {
+        clearInterval(imageVideoProgressInterval);
+        imageVideoProgressInterval = null;
+    }
+
+    // Clear progress animation interval
+    if (imageVideoProgressIndicator && imageVideoProgressIndicator.dataset.progressAnimation) {
+        clearInterval(parseInt(imageVideoProgressIndicator.dataset.progressAnimation));
+        delete imageVideoProgressIndicator.dataset.progressAnimation;
+    }
+
+    imageVideoStartTime = null;
+}
+
+function showImageVideoResult(data) {
+    const imageVideoContainer = document.getElementById('imageVideoContainer');
+    const imageVideoPlayer = document.getElementById('imageVideoPlayer');
+    const imageGeneratedVideo = document.getElementById('imageGeneratedVideo');
+
+    // Clear progress tracking
+    if (imageVideoProgressInterval) {
+        clearInterval(imageVideoProgressInterval);
+        imageVideoProgressInterval = null;
+    }
+    imageVideoStartTime = null;
+
+    hideImageVideoProgressIndicator();
+    
+    if (imageVideoContainer) imageVideoContainer.classList.add('hidden');
+    if (imageVideoPlayer) imageVideoPlayer.classList.remove('hidden');
+
+    if (imageGeneratedVideo) {
+        imageGeneratedVideo.src = data.video_url;
+        imageGeneratedVideo.load();
+        imageGeneratedVideo.dataset.videoUrl = data.video_url;
+    }
+}
+
 // Image Upload Handlers
 async function handleImageUpload(e) {
     const file = e.target.files[0];
@@ -2142,6 +2265,38 @@ function shareVideo() {
         // Copy link to clipboard
         navigator.clipboard.writeText(videoUrl).then(() => {
             alert(window.i18n.t('linkCopied'));
+        });
+    }
+}
+
+// Image to Video Actions
+function downloadImageVideo() {
+    const imageGeneratedVideo = document.getElementById('imageGeneratedVideo');
+    const videoUrl = imageGeneratedVideo ? imageGeneratedVideo.dataset.videoUrl : null;
+    if (videoUrl) {
+        const a = document.createElement('a');
+        a.href = videoUrl;
+        a.download = 'image-to-video.mp4';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+}
+
+function shareImageVideo() {
+    const imageGeneratedVideo = document.getElementById('imageGeneratedVideo');
+    const videoUrl = imageGeneratedVideo ? imageGeneratedVideo.dataset.videoUrl : null;
+    if (videoUrl && navigator.share) {
+        navigator.share({
+            title: '图像转视频 - AI生成',
+            text: '看看我用AI把图片变成视频了！',
+            url: videoUrl
+        }).catch(err => console.log('分享失败', err));
+    } else if (videoUrl) {
+        // Copy link to clipboard
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            alert('视频链接已复制到剪贴板');
         });
     }
 }

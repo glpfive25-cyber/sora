@@ -636,6 +636,50 @@
                     <span>生成视频</span>
                 </button>
             </div>
+
+            <!-- Video Display -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-film"></i>
+                    <span>生成的视频</span>
+                </div>
+                <div id="imageVideoContainer" class="media-container">
+                    <div style="text-align: center; color: #666; max-width: 400px;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-video" style="font-size: 2rem; color: #8b5cf6;"></i>
+                        </div>
+                        <p style="font-size: 1.125rem; color: #fff; margin-bottom: 0.5rem;">准备让图片动起来</p>
+                        <p style="font-size: 0.875rem; color: #9ca3af; margin-bottom: 1.5rem;">上传图片并描述动作，AI 将为你创作动态视频</p>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div id="imageVideoProgressIndicator" class="hidden progress-container">
+                    <div class="progress-bar-outer">
+                        <div id="imageVideoProgressBar" class="progress-bar-inner" style="width: 0%"></div>
+                    </div>
+                    <p id="imageVideoStatusText" style="color: #999; font-size: 0.875rem; margin-bottom: 0.5rem;">处理中...</p>
+                    <p id="imageVideoElapsedTime" style="color: #666; font-size: 0.75rem;"></p>
+                    <p id="imageVideoEstimatedTime" style="color: #666; font-size: 0.75rem;"></p>
+                </div>
+
+                <!-- Video Player -->
+                <div id="imageVideoPlayer" class="hidden" style="margin-top: 1rem; text-align: center;">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <video id="imageGeneratedVideo" controls style="width: 100%; max-height: 60vh; border-radius: 0.75rem; background: #000; object-fit: contain;"></video>
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                            <button id="imageVideoDownloadBtn" class="btn btn-secondary" style="flex: 1;">
+                                <i class="fas fa-download"></i>
+                                <span>下载</span>
+                            </button>
+                            <button id="imageVideoShareBtn" class="btn btn-secondary" style="flex: 1;">
+                                <i class="fas fa-share"></i>
+                                <span>分享</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Text to Image Section -->
