@@ -1215,15 +1215,11 @@
 
             <!-- API Configuration Section -->
             <div style="border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1.5rem; background: #0a0a0a;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="margin-bottom: 1rem;">
                     <h3 style="color: #fff; font-size: 1.125rem; font-weight: 600; margin: 0; display: flex; align-items: center;">
                         <i class="fas fa-cog" style="margin-right: 0.5rem; color: #8b5cf6;"></i>
                         API 配置
                     </h3>
-                    <button id="toggleAdvancedSettings" type="button" style="padding: 0.5rem 1rem; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 0.5rem; color: #a78bfa; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;">
-                        <i class="fas fa-sliders-h" style="margin-right: 0.5rem;"></i>
-                        <span id="advancedModeText">显示高级选项</span>
-                    </button>
                 </div>
 
                 <div class="input-group">
@@ -1246,72 +1242,14 @@
                     </button>
                 </div>
 
-                <!-- 高级设置区域 -->
-                <div id="advancedSettingsSection" style="display: none;">
-                    <div class="input-group">
-                        <label class="input-label">
-                            标准 API URL (视频/图像工具)
-                            <div class="tooltip-wrapper">
-                                <i class="fas fa-question-circle tooltip-icon"></i>
-                                <div class="tooltip right tooltip-content">
-                                    用于普通视频生成和图像生成功能<br>
-                                    默认: https://api.maynor1024.live/
-                                </div>
-                            </div>
-                        </label>
-                        <input type="text" id="apiBaseUrlInput" class="input-field" placeholder="https://api.maynor1024.live/" value="https://api.maynor1024.live/" />
-                    </div>
-
-                    <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.5rem;">
-                        <p style="color: #60a5fa; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600;">
-                            <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-                            备用 API 配置（可选）
-                        </p>
-                        <p style="color: #94a3b8; font-size: 0.75rem; margin: 0;">
-                            如果你有独立的备用 API 密钥，可以在这里配置。留空则使用上面的标准 API。
-                        </p>
-                    </div>
-
-                    <div class="input-group" style="position: relative;">
-                        <label class="input-label">
-                            备用 API Key（可选）
-                            <div class="tooltip-wrapper">
-                                <i class="fas fa-question-circle tooltip-icon"></i>
-                                <div class="tooltip right tooltip-content">
-                                    备用 API Key<br>
-                                    留空则使用标准 API Key
-                                </div>
-                            </div>
-                        </label>
-                        <input type="password" id="apiCharacterKeyInput" class="input-field" placeholder="留空使用标准 API Key" style="padding-right: 3rem;" />
-                        <button id="toggleCharacterApiKey" type="button" style="position: absolute; right: 1rem; top: 2.75rem; background: transparent; border: none; color: #666; cursor: pointer; padding: 0.5rem;">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label">
-                            备用 API URL（可选）
-                            <div class="tooltip-wrapper">
-                                <i class="fas fa-question-circle tooltip-icon"></i>
-                                <div class="tooltip right tooltip-content">
-                                    备用 API URL<br>
-                                    默认: https://api.maynor1024.live/
-                                </div>
-                            </div>
-                        </label>
-                        <input type="text" id="apiCharacterUrlInput" class="input-field" placeholder="https://api.maynor1024.live/" value="https://api.maynor1024.live/" />
-                    </div>
-                </div>
-
                 <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
                     <p style="color: #a78bfa; font-size: 0.875rem; margin: 0; display: flex; align-items: flex-start;">
                         <i class="fas fa-info-circle" style="margin-right: 0.5rem; margin-top: 0.125rem;"></i>
-                        <span id="settingsInfoText">
+                        <span>
                             <strong>配置说明：</strong><br>
                             • 统一使用 https://api.maynor1024.live/ API<br>
                             • 填写你的 API Key 即可开始使用<br>
-                            • 备用配置为可选项，通常无需填写
+                            • 留空将使用内置免费密钥
                         </span>
                     </p>
                 </div>

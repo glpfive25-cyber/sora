@@ -267,43 +267,8 @@ function setupEventListeners() {
         });
     }
 
-    // Toggle Advanced Settings
-    const toggleAdvancedSettings = document.getElementById('toggleAdvancedSettings');
-    const advancedSettingsSection = document.getElementById('advancedSettingsSection');
-    const advancedModeText = document.getElementById('advancedModeText');
-    const settingsInfoText = document.getElementById('settingsInfoText');
-    
-    if (toggleAdvancedSettings && advancedSettingsSection) {
-        toggleAdvancedSettings.addEventListener('click', () => {
-            const isHidden = advancedSettingsSection.style.display === 'none';
-            
-            if (isHidden) {
-                // 显示高级选项
-                advancedSettingsSection.style.display = 'block';
-                if (advancedModeText) advancedModeText.textContent = '隐藏高级选项';
-                if (settingsInfoText) {
-                    settingsInfoText.innerHTML = `
-                        <strong>高级配置：</strong><br>
-                        • 标准 API 用于视频和图像生成，成本较低<br>
-                        • Pro API 用于角色功能，只有 Pro 支持角色<br>
-                        • 可以为不同功能配置不同的 API Key
-                    `;
-                }
-            } else {
-                // 隐藏高级选项
-                advancedSettingsSection.style.display = 'none';
-                if (advancedModeText) advancedModeText.textContent = '显示高级选项';
-                if (settingsInfoText) {
-                    settingsInfoText.innerHTML = `
-                        <strong>快速开始：</strong><br>
-                        • 留空使用内置免费 API，无需配置即可使用<br>
-                        • 如需使用自己的 API，填写 API 密钥即可<br>
-                        • 点击"显示高级选项"可配置独立的 Pro API
-                    `;
-                }
-            }
-        });
-    }
+    // Toggle Advanced Settings - 已移除，简化配置界面
+    // 如用户需要高级配置，可以后续通过其他方式提供
 
     // Video Mode Events
     if (videoForm) videoForm.addEventListener('submit', handleVideoSubmit);
@@ -314,7 +279,7 @@ function setupEventListeners() {
 
     // Image Mode Events
     if (textToImageForm) textToImageForm.addEventListener('submit', handleTextToImage);
-    if (advancedToggle) advancedToggle.addEventListener('click', toggleAdvancedSettings);
+    // if (advancedToggle) advancedToggle.addEventListener('click', toggleAdvancedSettings); // 已移除高级设置
     if (steps) steps.addEventListener('input', (e) => { if (stepsValue) stepsValue.textContent = e.target.value; });
     if (cfgScale) cfgScale.addEventListener('input', (e) => { if (cfgValue) cfgValue.textContent = e.target.value; });
     if (imageEditForm) imageEditForm.addEventListener('submit', handleImageEdit);
@@ -379,26 +344,15 @@ function initializeSettings() {
 function loadSettingsToForm() {
     const config = getApiConfig();
     const apiKeyInput = document.getElementById('apiKeyInput');
-    const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
-    const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
-    const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
-    // 统一使用同一个 API 地址
-    const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
-
+    // 只处理基础API密钥配置
     if (apiKeyInput) {
-        apiKeyInput.value = config.apiKey || '';
-    }
-    if (apiBaseUrlInput) {
-        // 如果配置中没有 URL，使用默认值
-        apiBaseUrlInput.value = config.baseUrl || DEFAULT_BASE_URL;
-    }
-    if (apiCharacterKeyInput) {
-        apiCharacterKeyInput.value = config.characterApiKey || '';
-    }
-    if (apiCharacterUrlInput) {
-        // 统一使用同一个 API 地址
-        apiCharacterUrlInput.value = config.characterBaseUrl || DEFAULT_BASE_URL;
+        // 如果是内置密钥，显示为空
+        if (config.apiKey === 'sk-buitin-key-do-not-change') {
+            apiKeyInput.value = '';
+        } else {
+            apiKeyInput.value = config.apiKey || '';
+        }
     }
 
     updateApiStatusIndicator(config);
@@ -406,20 +360,28 @@ function loadSettingsToForm() {
 
 function handleSaveSettings() {
     const apiKeyInput = document.getElementById('apiKeyInput');
-    const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
-    const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
-    const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
     const settingsModal = document.getElementById('settingsModal');
 
     const apiKey = apiKeyInput.value.trim();
-    const baseUrl = apiBaseUrlInput.value.trim();
-    const characterApiKey = apiCharacterKeyInput.value.trim();
-    const characterBaseUrl = apiCharacterUrlInput.value.trim();
 
-    if (saveApiConfig(apiKey, baseUrl, characterApiKey, characterBaseUrl)) {
+    // 使用内置的API地址
+    const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+
+    // 如果用户没有输入密钥，使用内置密钥
+    const finalApiKey = apiKey || 'sk-buitin-key-do-not-change';
+    const finalBaseUrl = DEFAULT_BASE_URL;
+    const finalCharacterApiKey = apiKey || 'sk-buitin-key-do-not-change';
+    const finalCharacterBaseUrl = DEFAULT_BASE_URL;
+
+    if (saveApiConfig(finalApiKey, finalBaseUrl, finalCharacterApiKey, finalCharacterBaseUrl)) {
         // Show success message
         showNotification('设置已保存', 'success');
-        updateApiStatusIndicator({ apiKey, baseUrl, characterApiKey, characterBaseUrl });
+        updateApiStatusIndicator({
+            apiKey: finalApiKey,
+            baseUrl: finalBaseUrl,
+            characterApiKey: finalCharacterApiKey,
+            characterBaseUrl: finalCharacterBaseUrl
+        });
 
         // Close modal
         setTimeout(() => {
@@ -433,22 +395,14 @@ function handleSaveSettings() {
 function handleResetSettings() {
     if (confirm('确定要恢复默认设置吗？这将清除您的自定义 API 配置。')) {
         if (resetApiConfig()) {
-            // 统一使用同一个 API 地址
-            const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
-            
-            // Clear form and set default URLs
+            // 清空API密钥输入框（将使用内置密钥）
             const apiKeyInput = document.getElementById('apiKeyInput');
-            const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
-            const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
-            const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
-
             if (apiKeyInput) apiKeyInput.value = '';
-            if (apiBaseUrlInput) apiBaseUrlInput.value = DEFAULT_BASE_URL;
-            if (apiCharacterKeyInput) apiCharacterKeyInput.value = '';
-            if (apiCharacterUrlInput) apiCharacterUrlInput.value = DEFAULT_BASE_URL;
 
-            updateApiStatusIndicator({ apiKey: '', baseUrl: '', characterApiKey: '', characterBaseUrl: '' });
-            showNotification('已恢复默认设置', 'success');
+            // 重新加载默认配置（内置配置）
+            const config = getApiConfig();
+            updateApiStatusIndicator(config);
+            showNotification('已恢复默认设置（使用内置免费API）', 'success');
         } else {
             showNotification('重置失败，请重试', 'error');
         }
@@ -2053,10 +2007,10 @@ function handleEditTypeChange(e) {
     }
 }
 
-function toggleAdvancedSettings() {
-    advancedSettings.classList.toggle('hidden');
-    advancedIcon.classList.toggle('rotate-180');
-}
+// function toggleAdvancedSettings() {
+//     advancedSettings.classList.toggle('hidden');
+//     advancedIcon.classList.toggle('rotate-180');
+// } // 已移除高级设置功能
 
 function showImageLoading() {
     imageResults.innerHTML = `
