@@ -24,12 +24,16 @@ function getSoraInstance(req) {
   // 如果前端提供了自定义配置，使用前端配置
   if (customApiKey && customBaseUrl) {
     console.log('[Server] Using custom API from frontend');
+    console.log('[Server] Frontend API Key:', customApiKey ? `${customApiKey.substring(0, 8)}...` : 'none');
+    console.log('[Server] Frontend Base URL:', customBaseUrl);
     return new Sora2(customApiKey, customBaseUrl);
   }
   
   // 否则使用环境变量配置（如果有）
   if (process.env.SORA_API_KEY) {
     console.log('[Server] Using API from environment variables');
+    console.log('[Server] Env API Key:', process.env.SORA_API_KEY ? `${process.env.SORA_API_KEY.substring(0, 8)}...` : 'none');
+    console.log('[Server] Env Base URL:', process.env.SORA_BASE_URL || 'https://api.maynor1024.live/');
     return new Sora2(
       process.env.SORA_API_KEY,
       process.env.SORA_BASE_URL || 'https://api.maynor1024.live/'
@@ -38,6 +42,14 @@ function getSoraInstance(req) {
   
   // 如果都没有，返回 null
   console.warn('[Server] No API configuration found');
+  console.warn('[Server] Frontend headers:', { 
+    hasApiKey: !!customApiKey, 
+    hasBaseUrl: !!customBaseUrl 
+  });
+  console.warn('[Server] Environment variables:', { 
+    hasApiKey: !!process.env.SORA_API_KEY, 
+    hasBaseUrl: !!process.env.SORA_BASE_URL 
+  });
   return null;
 }
 

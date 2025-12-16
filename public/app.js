@@ -62,6 +62,23 @@ function getApiBaseUrl() {
     return window.location.origin;
 }
 
+// 获取带API配置的请求头
+function getApiHeaders(additionalHeaders = {}) {
+    const config = getApiConfig();
+    const headers = {
+        'Content-Type': 'application/json',
+        ...additionalHeaders
+    };
+    
+    // 如果有自定义API配置，添加到请求头
+    if (config.apiKey && config.baseUrl) {
+        headers['x-api-key'] = config.apiKey;
+        headers['x-base-url'] = config.baseUrl;
+    }
+    
+    return headers;
+}
+
 // Get API key if custom one is set
 function getApiKey() {
     const config = getApiConfig();
@@ -769,9 +786,7 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
 
         const response = await fetch('/api/video/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getApiHeaders(),
             body: JSON.stringify(requestBody),
             signal: controller.signal
         });
@@ -901,9 +916,7 @@ async function pollVideoTask(taskId, prompt, model) {
         try {
             const response = await fetch(`/api/video-task/${taskId}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: getApiHeaders()
             });
 
             if (!response.ok) {
@@ -1104,9 +1117,7 @@ async function handleTextToImage(e) {
         console.log('[Image Generation] Using model:', selectedModel);
         const response = await fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getApiHeaders(),
             body: JSON.stringify(requestBody)
         });
 
@@ -1356,9 +1367,7 @@ async function attemptImageEdit(editType, prompt, imageData, retryCount = 0) {
         }
         const response = await fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getApiHeaders(),
             body: JSON.stringify(requestBody),
             signal: controller.signal
         });
@@ -2251,9 +2260,7 @@ async function handleChatSubmit(e) {
     try {
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getApiHeaders(),
             body: JSON.stringify({
                 messages: chatHistory,
                 options: {
