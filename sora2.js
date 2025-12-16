@@ -338,7 +338,9 @@ class Sora2 {
 
         response.data.on('end', () => {
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-          console.log(`[Sora2] Stream completed in ${elapsed}s`);
+          console.log(`[Sora2] Stream completed in ${elapsed}s, content length: ${fullContent.length}`);
+
+          // 即使没有内容，也返回一个响应，让前端能够处理
           if (fullContent) {
             resolve({
               choices: [{
@@ -349,7 +351,17 @@ class Sora2 {
               }]
             });
           } else {
-            reject(new Error('Stream ended without content'));
+            // 对于视频生成，空流可能意味着API返回了错误或者正在处理中
+            // 返回一个空响应而不是抛出错误，让前端能够处理这种情况
+            console.warn('[Sora2] Stream ended without content, returning empty response');
+            resolve({
+              choices: [{
+                message: {
+                  role: 'assistant',
+                  content: ''
+                }
+              }]
+            });
           }
         });
 

@@ -817,6 +817,13 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             console.log('[Video] Processing stream response');
             const data = await handleStreamResponse(response, prompt, model);
             console.log('[Video] Stream completed:', data);
+
+            // 检查是否收到空响应
+            if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content === '') {
+                console.warn('[Video] Received empty content from stream');
+                throw new Error('API返回空响应，请重试');
+            }
+
             return data;
         } else {
             // 处理普通 JSON 响应
@@ -969,6 +976,21 @@ async function handleStreamResponse(response, prompt, model) {
             };
             handleVideoResponse(result, prompt, model);
             return result;
+        }
+
+        // 如果流结束但没有内容，返回空结果而不是抛出错误
+        if (!finalResult && !fullContent) {
+            console.warn('[Video Stream] Stream ended without content, returning empty result');
+            const emptyResult = {
+                choices: [{
+                    message: {
+                        role: 'assistant',
+                        content: ''
+                    }
+                }]
+            };
+            // 对于视频生成，空响应可能意味着失败，让调用者处理
+            return emptyResult;
         }
 
         return finalResult;
