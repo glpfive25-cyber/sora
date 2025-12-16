@@ -412,7 +412,7 @@
         <!-- Logo -->
         <div style="margin-bottom: 2rem;">
             <div style="display: flex; align-items: center;">
-                <img src="https://restname.oss-cn-hangzhou.aliyuncs.com/202510301728294.png" alt="Sora2 Imagine Logo" style="width: 2.5rem; height: 2.5rem; margin-right: 0.75rem; object-fit: contain;">
+                <img src="https://api.maynor1024.live/logo.png" alt="Sora2 Imagine Logo" style="width: 2.5rem; height: 2.5rem; margin-right: 0.75rem; object-fit: contain;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMTAiIGZpbGw9InVybCgjZ3JhZDApIi8+CjxwYXRoIGQ9Ik0yMCAxMkMxNS41IDEyIDEyIDE1LjUgMTIgMjBDMTIgMjQuNSAxNS41IDI4IDIwIDI4QzI0LjUgMjggMjggMjQuNSAyOCAyMEMyOCAxNS41IDI0LjUgMTIgMjAgMTJaIiBmaWxsPSJ3aGl0ZSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkMCIgeDE9IjAiIHkxPSIwIiB4Mj0iNDAiIHkyPSI0MCI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOGI1Y2Y2Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+';">
                 <h1 style="font-size: 1.25rem; font-weight: 700;">Sora2 Imagine</h1>
             </div>
             <p style="font-size: 0.75rem; color: #666; margin-top: 0.25rem; margin-left: 3.25rem;">限时免费使用</p>
@@ -481,8 +481,8 @@
                     <i class="fas fa-rocket" style="margin-right: 0.5rem;"></i>快速开始
                 </div>
                 <div style="font-size: 0.75rem; color: #9ca3af; line-height: 1.5;">
-                    1. 点击「设置」配置 API<br>
-                    2. 输入描述文字<br>
+                    1. 输入描述文字<br>
+                    2. 选择模型参数<br>
                     3. 点击生成按钮
                 </div>
             </div>
@@ -532,6 +532,8 @@
                             <option value="sora_video2-portrait">Sora-2 竖屏 10秒</option>
                             <option value="sora_video2-landscape-15s">Sora-2-Pro 横屏 15秒</option>
                             <option value="sora_video2-portrait-15s">Sora-2-Pro 竖屏 15秒</option>
+                            <option value="sora_video2-landscape-25s">Sora-2-Pro 横屏 25秒</option>
+                            <option value="sora_video2-portrait-25s">Sora-2-Pro 竖屏 25秒</option>
                         </select>
                     </div>
 
@@ -1054,6 +1056,7 @@
                             <select id="characterDurationSelect" class="input-field">
                                 <option value="10">10秒</option>
                                 <option value="15">15秒</option>
+                                <option value="25">25秒</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -1175,21 +1178,21 @@
                 </div>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: center;">
-                    <a href="https://api.maynor1024.live/register" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #dbeafe; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: all 0.2s; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-user-plus" style="font-size: 0.875rem;"></i>
-                        <span>1. 注册账号</span>
+                    <a href="https://api.maynor1024.live/topup" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #dbeafe; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: all 0.2s; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-credit-card" style="font-size: 0.875rem;"></i>
+                        <span>充值余额</span>
+                        <span style="background: #fbbf24; color: #78350f; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; margin-left: 0.25rem;">新用户可试用</span>
                     </a>
 
-                    <span style="color: #93c5fd; font-size: 1.25rem; font-weight: bold;">→</span>
+                    <span style="color: #93c5fd; font-size: 1.25rem; font-weight: bold;">|</span>
 
-                    <a href="https://api.maynor1024.live/login" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #dbeafe; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: all 0.2s; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-sign-in-alt" style="font-size: 0.875rem;"></i>
+                    <a href="https://api.maynor1024.live/token" target="_blank" rel="noreferrer" style="back
                         <span>2. 登录系统</span>
                     </a>
 
                     <span style="color: #93c5fd; font-size: 1.25rem; font-weight: bold;">→</span>
 
-                    <a href="https://api.maynor1024.live/console/topup" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #dbeafe; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: all 0.2s; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
+                    <a href="https://api.maynor1024.live/topup" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #dbeafe; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: all 0.2s; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-credit-card" style="font-size: 0.875rem;"></i>
                         <span>3. 充值余额</span>
                         <span style="background: #fbbf24; color: #78350f; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; margin-left: 0.25rem;">新用户可试用</span>
@@ -1197,7 +1200,7 @@
 
                     <span style="color: #93c5fd; font-size: 1.25rem; font-weight: bold;">→</span>
 
-                    <a href="https://api.maynor1024.live/console/token" target="_blank" rel="noreferrer" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: 2px solid #fbbf24; color: #78350f; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 0 20px rgba(251,191,36,0.3); position: relative; overflow: hidden;">
+                    <a href="https://api.maynor1024.live/token" target="_blank" rel="noreferrer" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: 2px solid #fbbf24; color: #78350f; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 0 20px rgba(251,191,36,0.3); position: relative; overflow: hidden;">
                         <i class="fas fa-key" style="font-size: 1rem; animation: pulse 2s infinite;"></i>
                         <span>4. 获取API令牌</span>
                         <span style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent); animation: shine 3s infinite;"></span>
@@ -1210,17 +1213,13 @@
                 </p>
             </div>
 
-            <!-- API Configuration Section -->
-            <div style="border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1.5rem; background: #0a0a0a;">
+            <!-- API Configuration Section - Hidden -->
+            <div style="border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1.5rem; background: #0a0a0a; display: none;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                     <h3 style="color: #fff; font-size: 1.125rem; font-weight: 600; margin: 0; display: flex; align-items: center;">
                         <i class="fas fa-cog" style="margin-right: 0.5rem; color: #8b5cf6;"></i>
-                        API 配置
+                        API 配置（已内置）
                     </h3>
-                    <button id="toggleAdvancedSettings" type="button" style="padding: 0.5rem 1rem; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 0.5rem; color: #a78bfa; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;">
-                        <i class="fas fa-sliders-h" style="margin-right: 0.5rem;"></i>
-                        <span id="advancedModeText">显示高级选项</span>
-                    </button>
                 </div>
 
                 <div class="input-group">

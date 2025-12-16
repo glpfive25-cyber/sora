@@ -10,11 +10,12 @@ function getApiConfig() {
     } catch (error) {
         console.error('Error loading API config:', error);
     }
+    // 内置默认API配置
     return {
-        apiKey: '',
-        baseUrl: '',
-        characterApiKey: '',
-        characterBaseUrl: ''
+        apiKey: 'sk-buitin-key-do-not-change',
+        baseUrl: 'https://api.maynor1024.live/',
+        characterApiKey: 'sk-buitin-key-do-not-change',
+        characterBaseUrl: 'https://api.maynor1024.live/'
     };
 }
 
@@ -445,11 +446,17 @@ function updateApiStatusIndicator(config) {
 
     if (!apiStatus) return;
 
-    const hasCustomConfig = (config.apiKey && config.apiKey.trim()) ||
-                           (config.baseUrl && config.baseUrl.trim());
+    // 使用内置配置，始终显示API已配置状态
+    const isBuiltinConfig = config.apiKey === 'sk-buitin-key-do-not-change';
 
-    if (hasCustomConfig) {
+    if (isBuiltinConfig || (config.apiKey && config.apiKey.trim()) ||
+        (config.baseUrl && config.baseUrl.trim())) {
         apiStatus.classList.remove('hidden');
+        // 更新状态文本显示内置配置
+        const statusText = apiStatus.querySelector('span');
+        if (statusText && isBuiltinConfig) {
+            statusText.textContent = 'API已内置配置';
+        }
     } else {
         apiStatus.classList.add('hidden');
     }
@@ -592,11 +599,6 @@ async function handleVideoSubmit(e) {
             // Image generation model
             model = 'sora_image';
         } else if (modelValue.startsWith('sora_video2')) {
-            // 根据选项决定使用 sora-2 还是 sora-2-pro
-            // 如果是 15 秒或需要高清，使用 sora-2-pro
-            const is15s = modelValue.includes('15s');
-            model = is15s ? 'sora-2-pro' : 'sora-2';
-            
             // 提取方向：竖屏 9:16，横屏 16:9
             if (modelValue.includes('portrait')) {
                 aspect_ratio = '9:16';
@@ -604,11 +606,18 @@ async function handleVideoSubmit(e) {
                 aspect_ratio = '16:9';
             }
             
-            // 提取时长（字符串格式）
-            if (is15s) {
+            // 提取时长并决定使用的模型
+            // 10秒、15秒 → sora-2
+            // 25秒 → sora-2-pro
+            if (modelValue.includes('25s')) {
+                duration = '25';
+                model = 'sora-2-pro';
+            } else if (modelValue.includes('15s')) {
                 duration = '15';
+                model = 'sora-2';
             } else {
                 duration = '10';
+                model = 'sora-2';
             }
         }
 
