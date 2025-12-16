@@ -16,11 +16,30 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Initialize Sora2 client with unified API
-const sora = new Sora2(
-  process.env.SORA_API_KEY,
-  process.env.SORA_BASE_URL || 'https://api.maynor1024.live/'
-);
+// 辅助函数：从请求中获取或创建 Sora 实例
+function getSoraInstance(req) {
+  const customApiKey = req.headers['x-api-key'];
+  const customBaseUrl = req.headers['x-base-url'];
+  
+  // 如果前端提供了自定义配置，使用前端配置
+  if (customApiKey && customBaseUrl) {
+    console.log('[Server] Using custom API from frontend');
+    return new Sora2(customApiKey, customBaseUrl);
+  }
+  
+  // 否则使用环境变量配置（如果有）
+  if (process.env.SORA_API_KEY) {
+    console.log('[Server] Using API from environment variables');
+    return new Sora2(
+      process.env.SORA_API_KEY,
+      process.env.SORA_BASE_URL || 'https://api.maynor1024.live/'
+    );
+  }
+  
+  // 如果都没有，返回 null
+  console.warn('[Server] No API configuration found');
+  return null;
+}
 
 // API Routes
 app.post('/api/chat', async (req, res) => {
@@ -39,8 +58,13 @@ app.post('/api/chat', async (req, res) => {
       ...(req.body.options || {})
     };
 
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
     console.log('[Server] Chat request:', { model: options.model, messagesCount: messages.length });
-    const response = await sora.chat(messages, options);
+    const response = await soraInstance.chat(messages, options);
     res.json(response);
   } catch (error) {
     console.error('Chat error:', error);
@@ -72,8 +96,13 @@ app.post('/api/chat/stream', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
     // Forward the stream from Sora API
-    await sora.chatStream(messages, options, (chunk) => {
+    await soraInstance.chatStream(messages, options, (chunk) => {
       res.write(chunk);
     });
 
@@ -93,7 +122,12 @@ app.post('/api/completion', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const response = await sora.createCompletion(prompt, options);
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
+    const response = await soraInstance.createCompletion(prompt, options);
     res.json(response);
   } catch (error) {
     console.error('Completion error:', error);
@@ -110,15 +144,11 @@ app.post('/api/video/generate', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // 检查是否有自定义 API 配置（从请求头）
-    const customApiKey = req.headers['x-api-key'];
-    const customBaseUrl = req.headers['x-base-url'];
-
-    // 如果有自定义配置，创建新的 Sora 实例
-    // 如果有自定义配置，创建新的 Sora 实例
-    const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl)
-      : sora;
+    // 获取 Sora 实例（优先使用前端配置）
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
     // 将图片数据传递给视频生成选项
     const videoOptions = {
@@ -128,7 +158,7 @@ app.post('/api/video/generate', async (req, res) => {
     };
 
     // 统一使用 V2 API（返回 task_id）
-    console.log('[Server] Using V2 API for video generation, custom API:', !!customApiKey);
+    console.log('[Server] Using V2 API for video generation');
     const response = await soraInstance.generateVideo(prompt, videoOptions);
     res.json(response);
   } catch (error) {
@@ -150,9 +180,14 @@ app.post('/api/video/generate', async (req, res) => {
 app.get('/api/video-task/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
-    console.log(`[Server] Querying video task status: ${taskId}`);
+    
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
-    const taskStatus = await sora.getVideoTaskStatus(taskId);
+    console.log(`[Server] Querying video task status: ${taskId}`);
+    const taskStatus = await soraInstance.getVideoTaskStatus(taskId);
 
     console.log(`[Server] Task status response:`, taskStatus);
     res.json(taskStatus);
@@ -169,9 +204,14 @@ app.get('/api/video-task/:taskId', async (req, res) => {
 app.get('/api/video/tasks/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
-    console.log(`[Server] Querying video task status (legacy): ${taskId}`);
+    
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
-    const taskStatus = await sora.getVideoTaskStatus(taskId);
+    console.log(`[Server] Querying video task status (legacy): ${taskId}`);
+    const taskStatus = await soraInstance.getVideoTaskStatus(taskId);
 
     res.json(taskStatus);
   } catch (error) {
@@ -202,8 +242,13 @@ app.post('/api/image/generate', async (req, res) => {
       cfg_scale: cfg_scale || 7
     };
 
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
     console.log('[Server] Generating image with options:', imageOptions);
-    const response = await sora.generateImage(prompt, imageOptions);
+    const response = await soraInstance.generateImage(prompt, imageOptions);
     res.json(response);
   } catch (error) {
     console.error('Image generation error:', error);
@@ -228,8 +273,13 @@ app.post('/api/image/edit', async (req, res) => {
       mask: mask || null
     };
 
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
     console.log('[Server] Editing image with options:', { edit_type, prompt });
-    const response = await sora.editImage(editOptions);
+    const response = await soraInstance.editImage(editOptions);
     res.json(response);
   } catch (error) {
     console.error('Image edit error:', error);
@@ -250,18 +300,13 @@ app.post('/api/character/create', async (req, res) => {
       return res.status(400).json({ error: 'Timestamps are required' });
     }
 
-    // 检查是否有自定义 API 配置（从请求头）
-    const customApiKey = req.headers['x-api-key'];
-    const customBaseUrl = req.headers['x-base-url'];
-
-    // 如果有自定义配置，创建新的 Sora 实例
-    // 如果有自定义配置，创建新的 Sora 实例
-    const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl)
-      : sora;
+    // 获取 Sora 实例（优先使用前端配置）
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
     console.log('[Server] Creating character with video:', videoUrl, 'timestamps:', timestamps);
-    console.log('[Server] Using custom API:', !!customApiKey, !!customBaseUrl);
     
     const response = await soraInstance.createCharacter(videoUrl, timestamps);
     res.json(response);
@@ -313,23 +358,18 @@ app.post('/api/video/create-with-character', async (req, res) => {
       character_timestamps: character_timestamps
     };
 
-    // 检查是否有自定义 API 配置（从请求头）
-    const customApiKey = req.headers['x-api-key'];
-    const customBaseUrl = req.headers['x-base-url'];
-
-    // 如果有自定义配置，创建新的 Sora 实例
-    // 如果有自定义配置，创建新的 Sora 实例
-    const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl)
-      : sora;
+    // 获取 Sora 实例（优先使用前端配置）
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
     console.log('[Server] Creating video with character:', { 
       model, 
       prompt: prompt.substring(0, 50) + '...', 
       characterUsername: characterUsername,
       hasCharacterUrl: !!character_url,
-      hasCharacterTimestamps: !!character_timestamps,
-      usingCustomApi: !!customApiKey
+      hasCharacterTimestamps: !!character_timestamps
     });
     
     const response = await soraInstance.createVideoWithCharacter(videoOptions);
@@ -360,8 +400,13 @@ app.get('/api/video/tasks/:taskId', async (req, res) => {
       return res.status(400).json({ error: 'Task ID is required' });
     }
 
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
+
     console.log('[Server] Querying video task status:', taskId);
-    const response = await sora.getVideoTaskStatus(taskId);
+    const response = await soraInstance.getVideoTaskStatus(taskId);
     res.json(response);
   } catch (error) {
     console.error('Video task status query error:', error);
@@ -382,13 +427,13 @@ app.get('/api/videos/:taskId', async (req, res) => {
     const customApiKey = req.headers['x-api-key'];
     const customBaseUrl = req.headers['x-base-url'];
 
-    // 如果有自定义配置，创建新的 Sora 实例
-    // 如果有自定义配置，创建新的 Sora 实例
-    const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl)
-      : sora;
+    // 获取 Sora 实例（优先使用前端配置）
+    const soraInstance = getSoraInstance(req);
+    if (!soraInstance) {
+      return res.status(400).json({ error: 'API配置缺失，请在前端设置API Key和Base URL' });
+    }
 
-    console.log('[Server] Querying video status:', taskId, 'custom API:', !!customApiKey);
+    console.log('[Server] Querying video status:', taskId);
     const response = await soraInstance.getVideoTaskStatus(taskId);
     res.json(response);
   } catch (error) {
