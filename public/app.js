@@ -351,17 +351,23 @@ function loadSettingsToForm() {
     const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
     const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
+    // 默认 URL 值
+    const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+    const DEFAULT_CHARACTER_URL = 'https://apipro.maynor1024.live/';
+
     if (apiKeyInput) {
         apiKeyInput.value = config.apiKey || '';
     }
     if (apiBaseUrlInput) {
-        apiBaseUrlInput.value = config.baseUrl || '';
+        // 如果配置中没有 URL，使用默认值
+        apiBaseUrlInput.value = config.baseUrl || DEFAULT_BASE_URL;
     }
     if (apiCharacterKeyInput) {
         apiCharacterKeyInput.value = config.characterApiKey || '';
     }
     if (apiCharacterUrlInput) {
-        apiCharacterUrlInput.value = config.characterBaseUrl || '';
+        // 如果配置中没有 URL，使用默认值
+        apiCharacterUrlInput.value = config.characterBaseUrl || DEFAULT_CHARACTER_URL;
     }
 
     updateApiStatusIndicator(config);
@@ -396,16 +402,20 @@ function handleSaveSettings() {
 function handleResetSettings() {
     if (confirm('确定要恢复默认设置吗？这将清除您的自定义 API 配置。')) {
         if (resetApiConfig()) {
-            // Clear form
+            // 默认 URL 值
+            const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+            const DEFAULT_CHARACTER_URL = 'https://apipro.maynor1024.live/';
+            
+            // Clear form and set default URLs
             const apiKeyInput = document.getElementById('apiKeyInput');
             const apiBaseUrlInput = document.getElementById('apiBaseUrlInput');
             const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
             const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
             if (apiKeyInput) apiKeyInput.value = '';
-            if (apiBaseUrlInput) apiBaseUrlInput.value = '';
+            if (apiBaseUrlInput) apiBaseUrlInput.value = DEFAULT_BASE_URL;
             if (apiCharacterKeyInput) apiCharacterKeyInput.value = '';
-            if (apiCharacterUrlInput) apiCharacterUrlInput.value = '';
+            if (apiCharacterUrlInput) apiCharacterUrlInput.value = DEFAULT_CHARACTER_URL;
 
             updateApiStatusIndicator({ apiKey: '', baseUrl: '', characterApiKey: '', characterBaseUrl: '' });
             showNotification('已恢复默认设置', 'success');
