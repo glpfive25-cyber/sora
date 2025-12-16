@@ -752,8 +752,24 @@ async function handleImageToVideo(e) {
 
         console.log('[Image to Video] Generation successful:', result);
         
-        // Show video result in image to video section
-        showImageVideoResult(result);
+        // Extract video URL from result
+        let videoUrl = null;
+        if (result && result.choices && result.choices[0] && result.choices[0].message) {
+            const content = result.choices[0].message.content;
+            
+            // Try to extract video URL from content
+            const urlMatch = content.match(/(https?:\/\/[^\s\)\]<>"']+)/);
+            if (urlMatch) {
+                videoUrl = urlMatch[1].replace(/[,;!?.'")\]}>]+$/, '');
+            }
+        }
+        
+        if (videoUrl) {
+            // Show video result in image to video section
+            showImageVideoResult({ video_url: videoUrl, status: 'completed' });
+        } else {
+            throw new Error('无法从响应中提取视频URL');
+        }
 
     } catch (error) {
         console.error('[Image to Video] Error:', error);
