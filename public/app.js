@@ -595,11 +595,10 @@ async function handleVideoSubmit(e) {
                 orientation: orientation,
                 duration: duration,
                 resolution: '1080p'
-            },
-            useStream: true // 启用流式响应获取进度
+            }
         };
 
-        // 使用智能重试机制生成视频
+        // 使用V2 API生成视频（返回task_id）
         const result = await attemptVideoGeneration(requestBody, prompt, model);
 
         if (!result) {
@@ -752,23 +751,18 @@ async function handleImageToVideo(e) {
     }
 }
 
-// 尝试视频生成（带智能重试和降级策略）
+// 尝试视频生成（使用V2 API，返回task_id）
 async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0) {
     const MAX_RETRIES = 2;
     const RETRY_DELAY = 3000 + (retryCount * 2000); // 渐进延迟: 3s, 5s, 7s
 
     try {
-        // 根据重试次数调整策略
-        // 第一次尝试使用原始设置，之后强制使用流式
-        const useStream = retryCount === 0 ? requestBody.useStream : true;
-        const currentRequest = { ...requestBody, useStream };
-
-        // 设置超时时间（流式模式使用更长超时）
-        const timeout = useStream ? 600000 : 300000; // 流式10分钟，非流式5分钟
+        // 设置超时时间（任务提交应该很快）
+        const timeout = 60000; // 1分钟超时
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-        console.log(`[Video] Attempt ${retryCount + 1}/${MAX_RETRIES + 1}, Stream: ${useStream}, Timeout: ${timeout/1000}s`);
+        console.log(`[Video] Attempt ${retryCount + 1}/${MAX_RETRIES + 1}, Timeout: ${timeout/1000}s`);
 
         // 显示当前尝试状态
         if (retryCount > 0) {
@@ -780,7 +774,7 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(currentRequest),
+            body: JSON.stringify(requestBody),
             signal: controller.signal
         });
 
@@ -802,7 +796,7 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             // 如果是504且还有重试次数，自动重试
             if (response.status === 504 && retryCount < MAX_RETRIES) {
                 console.log(`[Video] 504 timeout, retrying in ${RETRY_DELAY}ms... (${retryCount + 1}/${MAX_RETRIES})`);
-                updateProgressMessage(`⏱️ 服务器超时，等待${Math.round(RETRY_DELAY/1000)}秒后重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES + 1}，下次使用流式模式)`);
+                updateProgressMessage(`⏱️ 服务器超时，等待${Math.round(RETRY_DELAY/1000)}秒后重试...\n(尝试 ${retryCount + 1}/${MAX_RETRIES + 1})`);
 
                 await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                 return await attemptVideoGeneration(requestBody, prompt, model, retryCount + 1);
@@ -811,34 +805,16 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             throw new Error(errorData.error || errorData.message || 'Video generation failed');
         }
 
-        // 检查是否为流式响应
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('text/event-stream')) {
-            console.log('[Video] Processing stream response');
-            const data = await handleStreamResponse(response, prompt, model);
-            console.log('[Video] Stream completed:', data);
+        // V2 API 统一返回 JSON 响应（包含 task_id）
+        const data = await response.json();
+        console.log('[Video] Received V2 API response:', data);
 
-            // 检查是否收到空响应（这种情况现在应该由服务器自动切换到V2 API）
-            if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content === '') {
-                console.warn('[Video] Received empty content from stream, server should have switched to V2 API');
-                throw new Error('API返回空流，已自动切换到任务模式');
-            }
-
-            return data;
+        // 检查是否返回了任务ID
+        if (data.task_id) {
+            console.log('[Video] Received task_id, starting polling...');
+            return await pollVideoTask(data.task_id, prompt, model);
         } else {
-            // 处理普通 JSON 响应
-            const data = await response.json();
-            console.log('[Video] Received JSON response:', data);
-
-            // 检查是否是 V2 API 返回的任务ID
-            if (data.task_id) {
-                console.log('[Video] Received task_id from V2 API, starting polling...');
-                return await pollVideoTask(data.task_id, prompt, model);
-            } else {
-                // V1 API 直接返回结果
-                handleVideoResponse(data, prompt, model);
-                return data;
-            }
+            throw new Error('API未返回task_id');
         }
 
     } catch (error) {
@@ -886,148 +862,16 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
     }
 }
 
-// 处理流式响应，支持实时进度更新
-async function handleStreamResponse(response, prompt, model) {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let fullContent = '';
-    let finalResult = null;
-
-    try {
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                if (line.trim() === 'data: [DONE]') {
-                    console.log('[Video Stream] Received [DONE]');
-                    continue;
-                }
-
-                let jsonStr = line;
-                if (line.startsWith('data: ')) {
-                    jsonStr = line.slice(6).trim();
-                }
-
-                if (!jsonStr.startsWith('{')) continue;
-
-                try {
-                    const parsed = JSON.parse(jsonStr);
-                    console.log('[Video Stream] Received:', parsed);
-
-                    // 处理不同类型的流式事件
-                    if (parsed.type === 'progress') {
-                        // 进度更新
-                        handleProgressUpdate(parsed);
-                    } else if (parsed.type === 'done') {
-                        // 完成事件（新格式）
-                        console.log('[Video Stream] Done event received');
-                        if (parsed.data) {
-                            finalResult = parsed.data;
-                            handleVideoResponse(parsed.data, prompt, model);
-                        }
-                    } else if (parsed.type === 'complete') {
-                        // 完成（旧格式）
-                        console.log('[Video Stream] Complete event received');
-                        fullContent = parsed.content || '';
-                        finalResult = parsed;
-                        if (parsed.choices) {
-                            handleVideoResponse(parsed, prompt, model);
-                        }
-                    } else if (parsed.type === 'error') {
-                        // 错误事件
-                        const errorMsg = parsed.error || 'Stream error';
-                        const statusCode = parsed.statusCode || 500;
-                        console.error('[Video Stream] Error event:', errorMsg, 'Status:', statusCode);
-                        
-                        // 构造包含状态码的错误，以便外层可以识别并重试
-                        const error = new Error(errorMsg);
-                        error.statusCode = statusCode;
-                        throw error;
-                    } else if (parsed.choices) {
-                        // 标准 Chat 格式响应
-                        const content = parsed.choices?.[0]?.delta?.content || parsed.choices?.[0]?.message?.content;
-                        if (content) {
-                            fullContent += content;
-                            // 实时更新进度消息
-                            updateProgressMessage('生成中: ' + fullContent.slice(-50));
-                        }
-                    }
-                } catch (e) {
-                    console.error('[Video Stream] Parse error:', e);
-                    console.error('[Video Stream] Problematic line:', jsonStr);
-                    
-                    // 如果是我们抛出的错误（带 statusCode），需要重新抛出以触发重试
-                    if (e.statusCode) {
-                        throw e;
-                    }
-                    // 其他解析错误继续处理下一行
-                }
-            }
-        }
-
-        // 如果有完整内容但没有处理过，处理最终结果
-        if (fullContent && !finalResult) {
-            const result = {
-                choices: [{
-                    message: {
-                        role: 'assistant',
-                        content: fullContent
-                    }
-                }]
-            };
-            handleVideoResponse(result, prompt, model);
-            return result;
-        }
-
-        // 如果流结束但没有内容，返回空结果而不是抛出错误
-        if (!finalResult && !fullContent) {
-            console.warn('[Video Stream] Stream ended without content, returning empty result');
-            const emptyResult = {
-                choices: [{
-                    message: {
-                        role: 'assistant',
-                        content: ''
-                    }
-                }]
-            };
-            // 对于视频生成，空响应可能意味着失败，让调用者处理
-            return emptyResult;
-        }
-
-        return finalResult;
-    } catch (error) {
-        console.error('[Video Stream] Error:', error);
-        throw error;
+// 更新进度消息
+function updateProgressMessage(message) {
+    const statusText = document.getElementById('statusText');
+    if (statusText) {
+        statusText.textContent = message || '正在处理...';
     }
 }
 
-// 处理进度更新
-function handleProgressUpdate(progressData) {
-    console.log('[Video Progress]:', progressData);
-
-    // 提取进度百分比
-    const content = progressData.content || '';
-
-    // 尝试从内容中提取百分比 (例如: "10%", "Progress: 45%", etc.)
-    const percentMatch = content.match(/(\d+)%/);
-    if (percentMatch) {
-        const percent = parseInt(percentMatch[1]);
-        updateRealProgress(percent, content);
-    } else {
-        // 如果没有明确的百分比，显示进度消息
-        updateProgressMessage(content);
-    }
-}
-
-// 更新真实进度
-function updateRealProgress(percent, message = '') {
+// 更新进度百分比
+function updateProgressPercent(percent, message = '') {
     // 更新进度条
     const progressBar = document.getElementById('progressBar');
     if (progressBar) {
@@ -1042,32 +886,8 @@ function updateRealProgress(percent, message = '') {
     }
 
     // 更新状态消息
-    const statusText = document.getElementById('statusText');
-    if (statusText && message) {
-        statusText.textContent = message || `正在生成视频... ${percent}%`;
-    }
-
-    // 更新预计剩余时间
-    if (percent > 0 && percent < 100) {
-        const estimatedTime = document.getElementById('estimatedTime');
-        if (estimatedTime) {
-            const remainingPercent = 100 - percent;
-            const estimatedSeconds = Math.floor((remainingPercent / percent) * 30); // 粗略估计
-            if (estimatedSeconds > 60) {
-                const minutes = Math.floor(estimatedSeconds / 60);
-                estimatedTime.textContent = `预计还需 ${minutes} 分钟`;
-            } else {
-                estimatedTime.textContent = `预计还需 ${estimatedSeconds} 秒`;
-            }
-        }
-    }
-}
-
-// 更新进度消息（没有明确百分比时）
-function updateProgressMessage(message) {
-    const statusText = document.getElementById('statusText');
-    if (statusText) {
-        statusText.textContent = message || '正在处理...';
+    if (message) {
+        updateProgressMessage(message);
     }
 }
 
@@ -1093,39 +913,39 @@ async function pollVideoTask(taskId, prompt, model) {
             }
 
             const taskData = await response.json();
-            console.log(`[Video] Poll ${pollCount + 1}/${maxPolls}: Status=${taskData.status}, Progress=${taskData.progress || 0}%`);
+            console.log(`[Video] Poll ${pollCount + 1}/${maxPolls}:`, taskData);
 
+            // V2 API 状态: NOT_START, IN_PROGRESS, SUCCESS, FAILURE
+            const status = taskData.status;
+            const progress = taskData.progress || '0%';
+            
             // 更新进度消息
-            if (taskData.progress) {
-                updateProgressMessage(`生成进度: ${taskData.progress}%`);
-            } else if (taskData.status === 'processing') {
-                updateProgressMessage(`正在处理视频... (${pollCount * 5}秒)`);
-            } else if (taskData.status === 'pending') {
-                updateProgressMessage(`任务排队中... (${pollCount * 5}秒)`);
+            if (status === 'IN_PROGRESS') {
+                updateProgressMessage(`🎬 正在生成视频... ${progress} (${pollCount * 5}秒)`);
+            } else if (status === 'NOT_START') {
+                updateProgressMessage(`⏳ 任务排队中... (${pollCount * 5}秒)`);
             }
 
             // 检查任务状态
-            if (taskData.status === 'completed' && taskData.video_url) {
-                console.log('[Video] Task completed, video URL:', taskData.video_url);
+            if (status === 'SUCCESS' && taskData.data && taskData.data.output) {
+                console.log('[Video] Task completed, video URL:', taskData.data.output);
                 updateProgressMessage('✅ 视频生成完成！');
 
                 // 构造兼容的响应格式
                 const result = {
                     choices: [{
                         message: {
-                            content: taskData.video_url
+                            content: taskData.data.output
                         }
                     }]
                 };
 
                 handleVideoResponse(result, prompt, model);
                 return result;
-            } else if (taskData.status === 'failed') {
-                const errorMsg = taskData.error || taskData.message || '视频生成失败';
+            } else if (status === 'FAILURE') {
+                const errorMsg = taskData.fail_reason || '视频生成失败';
                 console.error('[Video] Task failed:', errorMsg);
                 throw new Error(errorMsg);
-            } else if (taskData.status === 'cancelled') {
-                throw new Error('视频生成任务被取消');
             }
 
             // 继续轮询
@@ -1134,11 +954,11 @@ async function pollVideoTask(taskId, prompt, model) {
 
         } catch (error) {
             console.error(`[Video] Poll ${pollCount + 1} error:`, error);
-            pollCount++;
-
+            
             // 如果是网络错误，继续轮询
-            if (error.message.includes('fetch')) {
-                updateProgressMessage(`网络错误，重试中... (${pollCount}/${maxPolls})`);
+            if (error.message.includes('fetch') || error.message.includes('Network')) {
+                pollCount++;
+                updateProgressMessage(`⚠️ 网络错误，重试中... (${pollCount}/${maxPolls})`);
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
                 continue;
             } else {
@@ -1147,7 +967,7 @@ async function pollVideoTask(taskId, prompt, model) {
         }
     }
 
-    throw new Error('视频生成超时，请重试');
+    throw new Error('视频生成超时（超过10分钟），请重试');
 }
 
 // 处理视频响应（从流式或非流式）
@@ -1697,12 +1517,7 @@ async function attemptImageEdit(editType, prompt, imageData, retryCount = 0) {
 
 // Poll Video Task Status - 已废弃
 // Chat API 直接返回结果，不需要轮询
-// 保留此函数以防旧代码引用，但会立即返回错误
-async function pollVideoTask(taskId) {
-    console.warn('[Video] pollVideoTask is deprecated - Chat API returns results directly');
-    hideProgressIndicator();
-    showError('Task polling is no longer supported. The new API returns results immediately.');
-}
+
 
 // UI Update Functions
 let startTime = null;
