@@ -5,7 +5,21 @@ function getApiConfig() {
     try {
         const config = localStorage.getItem(API_CONFIG_KEY);
         if (config) {
-            return JSON.parse(config);
+            const parsedConfig = JSON.parse(config);
+            // 如果用户清空了API密钥，使用内置密钥
+            if (!parsedConfig.apiKey || parsedConfig.apiKey.trim() === '') {
+                parsedConfig.apiKey = 'sk-buitin-key-do-not-change';
+            }
+            if (!parsedConfig.baseUrl || parsedConfig.baseUrl.trim() === '') {
+                parsedConfig.baseUrl = 'https://api.maynor1024.live/';
+            }
+            if (!parsedConfig.characterApiKey || parsedConfig.characterApiKey.trim() === '') {
+                parsedConfig.characterApiKey = 'sk-buitin-key-do-not-change';
+            }
+            if (!parsedConfig.characterBaseUrl || parsedConfig.characterBaseUrl.trim() === '') {
+                parsedConfig.characterBaseUrl = 'https://api.maynor1024.live/';
+            }
+            return parsedConfig;
         }
     } catch (error) {
         console.error('Error loading API config:', error);
@@ -446,16 +460,20 @@ function updateApiStatusIndicator(config) {
 
     if (!apiStatus) return;
 
-    // 使用内置配置，始终显示API已配置状态
+    // 检查是否使用内置配置
     const isBuiltinConfig = config.apiKey === 'sk-buitin-key-do-not-change';
+    const hasUserConfig = config.apiKey && config.apiKey.trim() && config.apiKey !== 'sk-buitin-key-do-not-change';
 
-    if (isBuiltinConfig || (config.apiKey && config.apiKey.trim()) ||
-        (config.baseUrl && config.baseUrl.trim())) {
+    if (isBuiltinConfig || hasUserConfig) {
         apiStatus.classList.remove('hidden');
-        // 更新状态文本显示内置配置
+        // 更新状态文本
         const statusText = apiStatus.querySelector('span');
-        if (statusText && isBuiltinConfig) {
-            statusText.textContent = 'API已内置配置';
+        if (statusText) {
+            if (isBuiltinConfig) {
+                statusText.textContent = '使用内置免费API';
+            } else if (hasUserConfig) {
+                statusText.textContent = '已配置个人API';
+            }
         }
     } else {
         apiStatus.classList.add('hidden');

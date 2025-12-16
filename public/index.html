@@ -1213,13 +1213,17 @@
                 </p>
             </div>
 
-            <!-- API Configuration Section - Hidden -->
-            <div style="border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1.5rem; background: #0a0a0a; display: none;">
+            <!-- API Configuration Section -->
+            <div style="border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1.5rem; background: #0a0a0a;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                     <h3 style="color: #fff; font-size: 1.125rem; font-weight: 600; margin: 0; display: flex; align-items: center;">
                         <i class="fas fa-cog" style="margin-right: 0.5rem; color: #8b5cf6;"></i>
-                        API 配置（已内置）
+                        API 配置
                     </h3>
+                    <button id="toggleAdvancedSettings" type="button" style="padding: 0.5rem 1rem; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 0.5rem; color: #a78bfa; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-sliders-h" style="margin-right: 0.5rem;"></i>
+                        <span id="advancedModeText">显示高级选项</span>
+                    </button>
                 </div>
 
                 <div class="input-group">
@@ -1236,7 +1240,7 @@
                             </div>
                         </div>
                     </label>
-                    <input type="password" id="apiKeyInput" class="input-field" placeholder="请输入您的API令牌 (留空使用内置免费密钥)" style="padding-right: 3rem;" />
+                    <input type="password" id="apiKeyInput" class="input-field" placeholder="请输入您的API令牌，留空使用内置密钥" style="padding-right: 3rem;" />
                     <button id="toggleApiKey" type="button" style="position: absolute; right: 1rem; top: 2.75rem; background: transparent; border: none; color: #666; cursor: pointer; padding: 0.5rem;">
                         <i class="fas fa-eye"></i>
                     </button>
