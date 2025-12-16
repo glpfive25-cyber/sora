@@ -351,9 +351,8 @@ function loadSettingsToForm() {
     const apiCharacterKeyInput = document.getElementById('apiCharacterKeyInput');
     const apiCharacterUrlInput = document.getElementById('apiCharacterUrlInput');
 
-    // 默认 URL 值
+    // 统一使用同一个 API 地址
     const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
-    const DEFAULT_CHARACTER_URL = 'https://apipro.maynor1024.live/';
 
     if (apiKeyInput) {
         apiKeyInput.value = config.apiKey || '';
@@ -366,8 +365,8 @@ function loadSettingsToForm() {
         apiCharacterKeyInput.value = config.characterApiKey || '';
     }
     if (apiCharacterUrlInput) {
-        // 如果配置中没有 URL，使用默认值
-        apiCharacterUrlInput.value = config.characterBaseUrl || DEFAULT_CHARACTER_URL;
+        // 统一使用同一个 API 地址
+        apiCharacterUrlInput.value = config.characterBaseUrl || DEFAULT_BASE_URL;
     }
 
     updateApiStatusIndicator(config);
@@ -402,9 +401,8 @@ function handleSaveSettings() {
 function handleResetSettings() {
     if (confirm('确定要恢复默认设置吗？这将清除您的自定义 API 配置。')) {
         if (resetApiConfig()) {
-            // 默认 URL 值
+            // 统一使用同一个 API 地址
             const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
-            const DEFAULT_CHARACTER_URL = 'https://apipro.maynor1024.live/';
             
             // Clear form and set default URLs
             const apiKeyInput = document.getElementById('apiKeyInput');
@@ -415,7 +413,7 @@ function handleResetSettings() {
             if (apiKeyInput) apiKeyInput.value = '';
             if (apiBaseUrlInput) apiBaseUrlInput.value = DEFAULT_BASE_URL;
             if (apiCharacterKeyInput) apiCharacterKeyInput.value = '';
-            if (apiCharacterUrlInput) apiCharacterUrlInput.value = DEFAULT_CHARACTER_URL;
+            if (apiCharacterUrlInput) apiCharacterUrlInput.value = DEFAULT_BASE_URL;
 
             updateApiStatusIndicator({ apiKey: '', baseUrl: '', characterApiKey: '', characterBaseUrl: '' });
             showNotification('已恢复默认设置', 'success');

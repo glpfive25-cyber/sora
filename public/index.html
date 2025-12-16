@@ -1262,21 +1262,21 @@
 
                     <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.5rem;">
                         <p style="color: #60a5fa; font-size: 0.875rem; margin: 0 0 0.5rem 0; font-weight: 600;">
-                            <i class="fas fa-star" style="margin-right: 0.5rem;"></i>
-                            Pro API 配置 (角色功能专用)
+                            <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                            备用 API 配置（可选）
                         </p>
                         <p style="color: #94a3b8; font-size: 0.75rem; margin: 0;">
-                            如果你有独立的 Pro API 密钥，可以在这里配置。留空则使用上面的标准 API。
+                            如果你有独立的备用 API 密钥，可以在这里配置。留空则使用上面的标准 API。
                         </p>
                     </div>
 
                     <div class="input-group" style="position: relative;">
                         <label class="input-label">
-                            Pro API Key (角色工具)
+                            备用 API Key（可选）
                             <div class="tooltip-wrapper">
                                 <i class="fas fa-question-circle tooltip-icon"></i>
                                 <div class="tooltip right tooltip-content">
-                                    用于角色创建和角色视频生成<br>
+                                    备用 API Key<br>
                                     留空则使用标准 API Key
                                 </div>
                             </div>
@@ -1289,16 +1289,16 @@
 
                     <div class="input-group">
                         <label class="input-label">
-                            Pro API URL (角色工具)
+                            备用 API URL（可选）
                             <div class="tooltip-wrapper">
                                 <i class="fas fa-question-circle tooltip-icon"></i>
                                 <div class="tooltip right tooltip-content">
-                                    用于角色创建和角色视频生成功能<br>
-                                    默认: https://apipro.maynor1024.live/
+                                    备用 API URL<br>
+                                    默认: https://api.maynor1024.live/
                                 </div>
                             </div>
                         </label>
-                        <input type="text" id="apiCharacterUrlInput" class="input-field" placeholder="https://apipro.maynor1024.live/" value="https://apipro.maynor1024.live/" />
+                        <input type="text" id="apiCharacterUrlInput" class="input-field" placeholder="https://api.maynor1024.live/" value="https://api.maynor1024.live/" />
                     </div>
                 </div>
 
@@ -1306,10 +1306,10 @@
                     <p style="color: #a78bfa; font-size: 0.875rem; margin: 0; display: flex; align-items: flex-start;">
                         <i class="fas fa-info-circle" style="margin-right: 0.5rem; margin-top: 0.125rem;"></i>
                         <span id="settingsInfoText">
-                            <strong>快速开始：</strong><br>
-                            • 留空使用内置免费 API，无需配置即可使用<br>
-                            • 如需使用自己的 API，填写 API 密钥即可<br>
-                            • 点击"显示高级选项"可配置独立的 Pro API
+                            <strong>配置说明：</strong><br>
+                            • 统一使用 https://api.maynor1024.live/ API<br>
+                            • 填写你的 API Key 即可开始使用<br>
+                            • 备用配置为可选项，通常无需填写
                         </span>
                     </p>
                 </div>
