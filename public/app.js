@@ -818,10 +818,10 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             const data = await handleStreamResponse(response, prompt, model);
             console.log('[Video] Stream completed:', data);
 
-            // 检查是否收到空响应
+            // 检查是否收到空响应（这种情况现在应该由服务器自动切换到V2 API）
             if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content === '') {
-                console.warn('[Video] Received empty content from stream');
-                throw new Error('API返回空响应，请重试');
+                console.warn('[Video] Received empty content from stream, server should have switched to V2 API');
+                throw new Error('API返回空流，已自动切换到任务模式');
             }
 
             return data;

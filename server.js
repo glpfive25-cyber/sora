@@ -16,12 +16,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Initialize Sora2 client with separate URLs and API keys for standard and character APIs
+// Initialize Sora2 client with unified API
 const sora = new Sora2(
   process.env.SORA_API_KEY,
-  process.env.SORA_BASE_URL || 'https://api.maynor1024.live/',
-  process.env.SORA_CHARACTER_API_KEY,
-  process.env.SORA_CHARACTER_BASE_URL || 'https://apipro.maynor1024.live/'
+  process.env.SORA_BASE_URL || 'https://api.maynor1024.live/'
 );
 
 // API Routes
@@ -117,9 +115,9 @@ app.post('/api/video/generate', async (req, res) => {
     const customBaseUrl = req.headers['x-base-url'];
 
     // 如果有自定义配置，创建新的 Sora 实例
-    // 对于普通视频生成，使用标准 API
+    // 如果有自定义配置，创建新的 Sora 实例
     const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl, customApiKey, customBaseUrl) // 使用相同的配置
+      ? new Sora2(customApiKey, customBaseUrl)
       : sora;
 
     // 将图片数据传递给视频生成选项
@@ -129,58 +127,10 @@ app.post('/api/video/generate', async (req, res) => {
       image: image // base64编码的图片数据或URL
     };
 
-    // 如果请求使用流式模式，使用流式生成
-    if (useStream) {
-      console.log('[Server] Using stream mode for video generation, custom API:', !!customApiKey);
-
-      // Set headers for SSE
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      res.setHeader('X-Accel-Buffering', 'no'); // 禁用nginx缓冲
-
-      try {
-        // 使用流式生成
-        const result = await soraInstance.generateVideoStream(prompt, videoOptions, (chunk, fullContent) => {
-          // 发送进度更新
-          res.write(`data: ${JSON.stringify({
-            type: 'progress',
-            content: chunk,
-            fullContent: fullContent
-          })}\n\n`);
-        });
-
-        // 发送最终结果
-        res.write(`data: ${JSON.stringify({
-          type: 'done',
-          data: result
-        })}\n\n`);
-        res.end();
-      } catch (streamError) {
-        console.error('[Server] Stream error:', streamError);
-        
-        // 提取错误状态码
-        let statusCode = 500;
-        if (streamError.message.includes('503')) {
-          statusCode = 503;
-        } else if (streamError.message.includes('504')) {
-          statusCode = 504;
-        }
-        
-        // 发送错误事件（包含状态码信息）
-        res.write(`data: ${JSON.stringify({
-          type: 'error',
-          error: streamError.message,
-          statusCode: statusCode
-        })}\n\n`);
-        res.end();
-      }
-    } else {
-      // 非流式模式
-      console.log('[Server] Using non-stream mode for video generation, custom API:', !!customApiKey);
-      const response = await soraInstance.generateVideo(prompt, videoOptions);
-      res.json(response);
-    }
+    // 统一使用 V2 API（返回 task_id）
+    console.log('[Server] Using V2 API for video generation, custom API:', !!customApiKey);
+    const response = await soraInstance.generateVideo(prompt, videoOptions);
+    res.json(response);
   } catch (error) {
     console.error('Video generation error:', error);
 
@@ -202,7 +152,7 @@ app.get('/api/video-task/:taskId', async (req, res) => {
     const { taskId } = req.params;
     console.log(`[Server] Querying video task status: ${taskId}`);
 
-    const taskStatus = await sora.getVideoTaskStatus(taskId, true); // 使用角色API
+    const taskStatus = await sora.getVideoTaskStatus(taskId);
 
     console.log(`[Server] Task status response:`, taskStatus);
     res.json(taskStatus);
@@ -221,7 +171,7 @@ app.get('/api/video/tasks/:taskId', async (req, res) => {
     const { taskId } = req.params;
     console.log(`[Server] Querying video task status (legacy): ${taskId}`);
 
-    const taskStatus = await sora.getVideoTaskStatus(taskId, true);
+    const taskStatus = await sora.getVideoTaskStatus(taskId);
 
     res.json(taskStatus);
   } catch (error) {
@@ -305,9 +255,9 @@ app.post('/api/character/create', async (req, res) => {
     const customBaseUrl = req.headers['x-base-url'];
 
     // 如果有自定义配置，创建新的 Sora 实例
-    // 对于角色创建，使用 Pro API 配置
+    // 如果有自定义配置，创建新的 Sora 实例
     const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl, customApiKey, customBaseUrl) // 角色功能使用相同的 key 和 URL
+      ? new Sora2(customApiKey, customBaseUrl)
       : sora;
 
     console.log('[Server] Creating character with video:', videoUrl, 'timestamps:', timestamps);
@@ -368,9 +318,9 @@ app.post('/api/video/create-with-character', async (req, res) => {
     const customBaseUrl = req.headers['x-base-url'];
 
     // 如果有自定义配置，创建新的 Sora 实例
-    // 对于带角色的视频创建，使用 Pro API 配置
+    // 如果有自定义配置，创建新的 Sora 实例
     const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl, customApiKey, customBaseUrl) // 角色功能使用相同的 key 和 URL
+      ? new Sora2(customApiKey, customBaseUrl)
       : sora;
 
     console.log('[Server] Creating video with character:', { 
@@ -433,9 +383,9 @@ app.get('/api/videos/:taskId', async (req, res) => {
     const customBaseUrl = req.headers['x-base-url'];
 
     // 如果有自定义配置，创建新的 Sora 实例
-    // 对于视频状态查询，使用 Pro API 配置
+    // 如果有自定义配置，创建新的 Sora 实例
     const soraInstance = (customApiKey && customBaseUrl) 
-      ? new Sora2(customApiKey, customBaseUrl, customApiKey, customBaseUrl) // 角色功能使用相同的 key 和 URL
+      ? new Sora2(customApiKey, customBaseUrl)
       : sora;
 
     console.log('[Server] Querying video status:', taskId, 'custom API:', !!customApiKey);
