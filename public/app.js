@@ -582,34 +582,43 @@ async function handleVideoSubmit(e) {
         const modelValue = modelSelect ? modelSelect.value : 'sora_video2';
 
         // Extract model information
-        let model = modelValue.replace(/_/g, '_');
-        let orientation = 'landscape';
-        let duration = 10;
+        let model = 'sora-2'; // 默认使用 sora-2
+        let aspect_ratio = '16:9'; // 默认横屏
+        let duration = '10'; // 默认 10 秒（字符串格式）
+        let hd = false; // 默认非高清
 
         // Parse based on model type
         if (modelValue === 'sora_image') {
             // Image generation model
             model = 'sora_image';
-        } else if (modelValue === 'sora_video2') {
-            // Standard video model - map to V2 API model name
-            model = 'sora-2';
-        } else if (modelValue.includes('landscape')) {
-            model = modelValue;
-            orientation = 'landscape';
-            duration = modelValue.includes('15s') ? 15 : 10;
-        } else if (modelValue.includes('portrait')) {
-            model = modelValue;
-            orientation = 'portrait';
-            duration = modelValue.includes('15s') ? 15 : 10;
+        } else if (modelValue.startsWith('sora_video2')) {
+            // 根据选项决定使用 sora-2 还是 sora-2-pro
+            // 如果是 15 秒或需要高清，使用 sora-2-pro
+            const is15s = modelValue.includes('15s');
+            model = is15s ? 'sora-2-pro' : 'sora-2';
+            
+            // 提取方向：竖屏 9:16，横屏 16:9
+            if (modelValue.includes('portrait')) {
+                aspect_ratio = '9:16';
+            } else {
+                aspect_ratio = '16:9';
+            }
+            
+            // 提取时长（字符串格式）
+            if (is15s) {
+                duration = '15';
+            } else {
+                duration = '10';
+            }
         }
 
         const requestBody = {
             prompt: prompt,
             model: model,
             options: {
-                orientation: orientation,
+                aspect_ratio: aspect_ratio,
                 duration: duration,
-                resolution: '1080p'
+                hd: hd
             }
         };
 
@@ -630,7 +639,22 @@ async function handleVideoSubmit(e) {
         let errorMessage = '';
         let suggestions = '';
 
-        if (error.name === 'AbortError') {
+        if (error.message.includes('写实人物') || error.message.includes('真人')) {
+            errorMessage = '❌ 内容审核未通过';
+            suggestions = `
+                <div class="mt-3 text-left text-sm">
+                    <p class="font-semibold mb-2">原因：</p>
+                    <p class="mb-3">${error.message}</p>
+                    <p class="font-semibold mb-2">💡 建议：</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>避免使用真人照片或写实人物图片</li>
+                        <li>使用卡通、动漫风格的图片</li>
+                        <li>使用风景、物品等非人物内容</li>
+                        <li>修改提示词，避免涉及真人或名人</li>
+                    </ul>
+                </div>
+            `;
+        } else if (error.name === 'AbortError') {
             errorMessage = '⏱️ 请求超时（超过5分钟）';
             suggestions = '建议：选择较短的视频选项（非15秒版本）或稍后重试';
         } else if (error.message.includes('503')) {
@@ -733,11 +757,10 @@ async function handleImageToVideo(e) {
             model: 'sora-2',
             image: uploadedImageData,
             options: {
-                orientation: 'landscape',
-                duration: 10,
-                resolution: '1080p'
-            },
-            useStream: true
+                aspect_ratio: '16:9',
+                duration: '10',
+                hd: false
+            }
         };
 
         const result = await attemptVideoGeneration(requestBody, prompt, 'sora-2');
@@ -754,7 +777,37 @@ async function handleImageToVideo(e) {
     } catch (error) {
         console.error('[Image to Video] Error:', error);
         hideImageVideoProgressIndicator();
-        showError('❌ 视频生成失败', error.message || '请重试');
+        
+        // 根据错误类型显示不同的提示
+        let errorMessage = '视频生成失败';
+        let suggestions = '';
+        
+        if (error.message.includes('写实人物') || error.message.includes('真人')) {
+            errorMessage = '❌ 图片审核未通过';
+            suggestions = `
+                <div class="text-left">
+                    <p class="font-semibold mb-2">原因：</p>
+                    <p class="mb-3">${error.message}</p>
+                    <p class="font-semibold mb-2">💡 建议：</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>使用卡通、动漫风格的图片</li>
+                        <li>使用风景、物品等非人物图片</li>
+                        <li>避免使用真人照片或写实人物图片</li>
+                    </ul>
+                </div>
+            `;
+        } else if (error.message.includes('503')) {
+            errorMessage = '⚠️ API 服务暂时不可用';
+            suggestions = '请稍后重试，或检查API配置';
+        } else if (error.message.includes('timeout') || error.message.includes('超时')) {
+            errorMessage = '⏱️ 请求超时';
+            suggestions = '视频生成时间较长，请稍后重试';
+        } else {
+            errorMessage = '❌ 视频生成失败';
+            suggestions = error.message || '请重试';
+        }
+        
+        showImageVideoError(errorMessage, suggestions);
     } finally {
         if (generateImageVideoBtn) {
             generateImageVideoBtn.disabled = false;
@@ -1764,6 +1817,50 @@ function showImageVideoResult(data) {
         imageGeneratedVideo.src = data.video_url;
         imageGeneratedVideo.load();
         imageGeneratedVideo.dataset.videoUrl = data.video_url;
+    }
+}
+
+// 显示图生视频错误
+function showImageVideoError(message, suggestions = '') {
+    const imageVideoContainer = document.getElementById('imageVideoContainer');
+    const imageVideoPlayer = document.getElementById('imageVideoPlayer');
+    
+    // Clear progress tracking
+    if (imageVideoProgressInterval) {
+        clearInterval(imageVideoProgressInterval);
+        imageVideoProgressInterval = null;
+    }
+    imageVideoStartTime = null;
+    
+    hideImageVideoProgressIndicator();
+    
+    if (imageVideoPlayer) imageVideoPlayer.classList.add('hidden');
+    if (imageVideoContainer) {
+        imageVideoContainer.classList.remove('hidden');
+        imageVideoContainer.innerHTML = `
+            <div class="text-center max-w-2xl mx-auto p-8">
+                <div class="text-6xl mb-4">❌</div>
+                <h3 class="text-lg font-semibold text-red-600 mb-2">${message}</h3>
+                ${suggestions ? `<div class="text-gray-700 mt-4 text-sm">${suggestions}</div>` : ''}
+                <button onclick="resetImageVideoDisplay()" class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition shadow-lg">
+                    <i class="fas fa-redo mr-2"></i>重新尝试
+                </button>
+            </div>
+        `;
+    }
+}
+
+// 重置图生视频显示
+function resetImageVideoDisplay() {
+    const imageVideoContainer = document.getElementById('imageVideoContainer');
+    if (imageVideoContainer) {
+        imageVideoContainer.innerHTML = `
+            <div class="text-center">
+                <div class="text-6xl mb-4">🎬</div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">上传图片并输入提示词</h3>
+                <p class="text-sm text-gray-600">生成的视频将在这里显示</p>
+            </div>
+        `;
     }
 }
 
