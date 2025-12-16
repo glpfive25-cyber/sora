@@ -1,4 +1,4 @@
-# Sora2 角色客串 Character
+# Sora2 使用角色客串
 
 ## OpenAPI Specification
 
@@ -11,9 +11,9 @@ info:
 paths:
   /v2/videos/generations:
     post:
-      summary: Sora2 角色客串 Character
+      summary: Sora2 使用角色客串
       deprecated: false
-      description: |
+      description: |-
         角色客串功能:
         你可以把生成的或者上传你自己的视频，把任何角色对象提取出来，加入视频中作为“客串角色”
         用户不仅能客串自己，还可以创建生活中的角色(如宠物、朋友)或纯想象的角色(如怪物、英雄、奇幻生物)
@@ -21,6 +21,8 @@ paths:
         任何东西都能变身客串，激发无限脑洞
 
         PS: 这个角色指的是物品，不是人物，人物要走 face id 录入暂不支持上传
+        注意调用角色需要跟 prompt 有空格隔开
+        例如：@{角色1Username} 在一个舞台上和 @{角色2Username} 牵手跳舞
       tags:
         - 视频模型/统一格式接口/Sora2 视频
       parameters:
@@ -47,7 +49,10 @@ paths:
               properties:
                 prompt:
                   type: string
-                  x-apifox-mock: make animate
+                  x-apifox-mock: '@{角色1Username} 在一个舞台上和 @{角色2Username} 牵手跳舞'
+                  description: |-
+                    注意调用角色需要跟 prompt 有空格隔开
+                    例如：@{角色1Username} 在一个舞台上和 @{角色2Username} 牵手跳舞
                 model:
                   type: string
                   x-apifox-mock: sora-2

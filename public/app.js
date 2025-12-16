@@ -576,8 +576,8 @@ async function handleVideoSubmit(e) {
             // Image generation model
             model = 'sora_image';
         } else if (modelValue === 'sora_video2') {
-            // Standard video model
-            model = 'sora_video2';
+            // Standard video model - map to V2 API model name
+            model = 'sora-2';
         } else if (modelValue.includes('landscape')) {
             model = modelValue;
             orientation = 'landscape';
@@ -716,7 +716,7 @@ async function handleImageToVideo(e) {
     try {
         const requestBody = {
             prompt: prompt,
-            model: 'sora_video2',
+            model: 'sora-2',
             image: uploadedImageData,
             options: {
                 orientation: 'landscape',
@@ -726,7 +726,7 @@ async function handleImageToVideo(e) {
             useStream: true
         };
 
-        const result = await attemptVideoGeneration(requestBody, prompt, 'sora_video2');
+        const result = await attemptVideoGeneration(requestBody, prompt, 'sora-2');
 
         if (!result) {
             throw new Error('Video generation failed');
@@ -829,8 +829,16 @@ async function attemptVideoGeneration(requestBody, prompt, model, retryCount = 0
             // 处理普通 JSON 响应
             const data = await response.json();
             console.log('[Video] Received JSON response:', data);
-            handleVideoResponse(data, prompt, model);
-            return data;
+
+            // 检查是否是 V2 API 返回的任务ID
+            if (data.task_id) {
+                console.log('[Video] Received task_id from V2 API, starting polling...');
+                return await pollVideoTask(data.task_id, prompt, model);
+            } else {
+                // V1 API 直接返回结果
+                handleVideoResponse(data, prompt, model);
+                return data;
+            }
         }
 
     } catch (error) {
@@ -1061,6 +1069,85 @@ function updateProgressMessage(message) {
     if (statusText) {
         statusText.textContent = message || '正在处理...';
     }
+}
+
+// 轮询视频任务状态（V2 API）
+async function pollVideoTask(taskId, prompt, model) {
+    const maxPolls = 120; // 最大轮询次数（10分钟，每5秒一次）
+    let pollCount = 0;
+    const pollInterval = 5000; // 5秒轮询一次
+
+    console.log(`[Video] Starting to poll task ${taskId}, max polls: ${maxPolls}`);
+
+    while (pollCount < maxPolls) {
+        try {
+            const response = await fetch(`/api/video-task/${taskId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Task status query failed: ${response.status}`);
+            }
+
+            const taskData = await response.json();
+            console.log(`[Video] Poll ${pollCount + 1}/${maxPolls}: Status=${taskData.status}, Progress=${taskData.progress || 0}%`);
+
+            // 更新进度消息
+            if (taskData.progress) {
+                updateProgressMessage(`生成进度: ${taskData.progress}%`);
+            } else if (taskData.status === 'processing') {
+                updateProgressMessage(`正在处理视频... (${pollCount * 5}秒)`);
+            } else if (taskData.status === 'pending') {
+                updateProgressMessage(`任务排队中... (${pollCount * 5}秒)`);
+            }
+
+            // 检查任务状态
+            if (taskData.status === 'completed' && taskData.video_url) {
+                console.log('[Video] Task completed, video URL:', taskData.video_url);
+                updateProgressMessage('✅ 视频生成完成！');
+
+                // 构造兼容的响应格式
+                const result = {
+                    choices: [{
+                        message: {
+                            content: taskData.video_url
+                        }
+                    }]
+                };
+
+                handleVideoResponse(result, prompt, model);
+                return result;
+            } else if (taskData.status === 'failed') {
+                const errorMsg = taskData.error || taskData.message || '视频生成失败';
+                console.error('[Video] Task failed:', errorMsg);
+                throw new Error(errorMsg);
+            } else if (taskData.status === 'cancelled') {
+                throw new Error('视频生成任务被取消');
+            }
+
+            // 继续轮询
+            pollCount++;
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+        } catch (error) {
+            console.error(`[Video] Poll ${pollCount + 1} error:`, error);
+            pollCount++;
+
+            // 如果是网络错误，继续轮询
+            if (error.message.includes('fetch')) {
+                updateProgressMessage(`网络错误，重试中... (${pollCount}/${maxPolls})`);
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                continue;
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    throw new Error('视频生成超时，请重试');
 }
 
 // 处理视频响应（从流式或非流式）

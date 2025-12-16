@@ -160,61 +160,63 @@ class Sora2 {
     }
   }
 
-  // 视频生成 - 使用 Chat API 格式（非流式）
+  // 视频生成 - 使用 V2 API 格式
   async generateVideo(prompt, options = {}) {
     const startTime = Date.now();
     try {
-      // 构建消息内容数组
-      const contentArray = [];
-
-      // 添加文本提示词
-      contentArray.push({
-        type: 'text',
-        text: prompt
-      });
-
-      // 如果有图片，添加图片URL到内容中
-      if (options.image) {
-        contentArray.push({
-          type: 'image_url',
-          image_url: {
-            url: options.image
-          }
-        });
-        console.log('[Sora2] Generating video with reference image');
-      }
-
-      // 构建消息数组
-      const messages = [
-        {
-          role: 'user',
-          content: contentArray
-        }
-      ];
+      console.log(`[Sora2] Generating video with V2 API`);
+      console.log(`[Sora2] Using V2 API format for video generation`);
+      console.log(`[Sora2] Using character API endpoint: ${this.characterBaseURL}`);
 
       // 使用指定的模型或默认模型
-      const model = options.model || 'sora_video2';
+      const model = options.model || 'sora-2';
 
-      console.log(`[Sora2] Using model: ${model}`);
-      console.log(`[Sora2] Prompt: ${prompt}`);
-      console.log(`[Sora2] Non-stream mode, timeout: 300s`);
-
-      // 使用 Chat API 格式调用
+      // 构建请求数据（V2 API 格式）
       const requestData = {
+        prompt: prompt,
         model: model,
-        messages: messages,
-        stream: false // 非流式模式
+        aspect_ratio: options.aspect_ratio || options.orientation === 'portrait' ? '9:16' : '16:9',
+        duration: options.duration || '10',
+        hd: options.hd || false,
+        watermark: options.watermark || false,
+        private: options.private || false
       };
 
-      // Video generation typically takes longer, so use extended timeout
-      const response = await this.client.post('/v1/chat/completions', requestData, {
-        timeout: 300000 // 5 minutes timeout for video generation
+      // 如果有图片，添加到 images 数组
+      if (options.image) {
+        requestData.images = [options.image];
+        console.log('[Sora2] Added reference image to request');
+      }
+
+      console.log(`[Sora2] Using model: ${model}`);
+      console.log(`[Sora2] Request data:`, requestData);
+
+      // 使用新的 V2 API 端点
+      const response = await this.characterClient.post('/v2/videos/generations', requestData, {
+        timeout: 60000 // 1分钟超时，任务提交应该很快
       });
 
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`[Sora2] Video generation completed in ${elapsed}s`);
+      if (response.data && response.data.error) {
+        console.error('API returned error:', response.data.error);
+        throw new Error(response.data.error.message || response.data.error.message_zh || 'Video generation failed');
+      }
 
-      return response.data;
+      const taskId = response.data.task_id;
+      if (!taskId) {
+        throw new Error('No task_id returned from API');
+      }
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`[Sora2] Video task submitted in ${elapsed}s, ID: ${taskId}`);
+
+      // 返回任务ID，以便后续查询
+      return {
+        task_id: taskId,
+        status: 'pending',
+        model: model,
+        prompt: prompt,
+        data: response.data
+      };
     } catch (error) {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       console.error(`[Sora2] Video generation failed after ${elapsed}s:`, {

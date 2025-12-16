@@ -196,14 +196,41 @@ app.post('/api/video/generate', async (req, res) => {
   }
 });
 
-// Get video task status - 已废弃
-// Chat API 直接返回结果，不需要轮询任务状态
+// Get video task status - 支持 V2 API 任务轮询
+app.get('/api/video-task/:taskId', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    console.log(`[Server] Querying video task status: ${taskId}`);
+
+    const taskStatus = await sora.getVideoTaskStatus(taskId, true); // 使用角色API
+
+    console.log(`[Server] Task status response:`, taskStatus);
+    res.json(taskStatus);
+  } catch (error) {
+    console.error('Task status query error:', error);
+    res.status(500).json({
+      error: error.message,
+      status: 'error'
+    });
+  }
+});
+
+// 保留旧的API端点以防兼容性问题
 app.get('/api/video/tasks/:taskId', async (req, res) => {
-  console.warn('[Server] Task polling endpoint is deprecated');
-  res.status(410).json({
-    error: 'Task polling is no longer supported. The Chat API returns results directly.',
-    deprecated: true
-  });
+  try {
+    const { taskId } = req.params;
+    console.log(`[Server] Querying video task status (legacy): ${taskId}`);
+
+    const taskStatus = await sora.getVideoTaskStatus(taskId, true);
+
+    res.json(taskStatus);
+  } catch (error) {
+    console.error('Task status query error (legacy):', error);
+    res.status(500).json({
+      error: error.message,
+      status: 'error'
+    });
+  }
 });
 
 // Image generation endpoint
