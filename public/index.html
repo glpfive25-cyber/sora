@@ -1409,7 +1409,8 @@
             document.getElementById('langMenu')?.classList.toggle('hidden');
         });
 
-        function switchLanguage(lang) {
+        // Make switchLanguage globally accessible
+        window.switchLanguage = function(lang) {
             window.i18n?.setLanguage(lang);
             document.getElementById('currentLangText').textContent = lang === 'zh' ? '中文' : 'English';
             document.getElementById('langMenu')?.classList.add('hidden');
