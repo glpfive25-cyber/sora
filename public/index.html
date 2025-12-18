@@ -426,62 +426,80 @@
                 <img src="https://api.maynor1024.live/logo.png" alt="Sora2 Imagine Logo" style="width: 2.5rem; height: 2.5rem; margin-right: 0.75rem; object-fit: contain;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMTAiIGZpbGw9InVybCgjZ3JhZDApIi8+CjxwYXRoIGQ9Ik0yMCAxMkMxNS41IDEyIDEyIDE1LjUgMTIgMjBDMTIgMjQuNSAxNS41IDI4IDIwIDI4QzI0LjUgMjggMjggMjQuNSAyOCAyMEMyOCAxNS41IDI0LjUgMTIgMjAgMTJaIiBmaWxsPSJ3aGl0ZSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkMCIgeDE9IjAiIHkxPSIwIiB4Mj0iNDAiIHkyPSI0MCI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOGI1Y2Y2Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+';">
                 <h1 style="font-size: 1.25rem; font-weight: 700;">Sora2 Imagine</h1>
             </div>
-            <p style="font-size: 0.75rem; color: #666; margin-top: 0.25rem; margin-left: 3.25rem;">限时免费使用</p>
+            <div style="display: flex; align-items: center; margin-top: 0.25rem; margin-left: 3.25rem;">
+                <p style="font-size: 0.75rem; color: #666; margin-right: 1rem;" data-i18n="limitedTimeFree">限时免费使用</p>
+                <!-- Language Toggle -->
+                <div style="position: relative;">
+                    <button id="langToggle" style="background: transparent; border: 1px solid #2a2a2a; color: #999; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; transition: all 0.2s;">
+                        <i class="fas fa-globe"></i>
+                        <span id="currentLangText">中文</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.625rem;"></i>
+                    </button>
+                    <div id="langMenu" class="hidden" style="position: absolute; top: 100%; right: 0; background: #1a1a2e; border: 1px solid #2a2a2a; border-radius: 0.5rem; padding: 0.5rem; min-width: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; margin-top: 0.25rem;">
+                        <button onclick="switchLanguage('zh')" style="width: 100%; background: transparent; border: none; color: #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; cursor: pointer; border-radius: 0.25rem; font-size: 0.875rem; transition: all 0.2s;" onmouseover="this.style.background='#2a2a3e'" onmouseout="this.style.background='transparent'">
+                            🇨🇳 中文
+                        </button>
+                        <button onclick="switchLanguage('en')" style="width: 100%; background: transparent; border: none; color: #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; cursor: pointer; border-radius: 0.25rem; font-size: 0.875rem; transition: all 0.2s;" onmouseover="this.style.background='#2a2a3e'" onmouseout="this.style.background='transparent'">
+                            🇺🇸 English
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Video Tools -->
         <div class="nav-section">
-            <div class="nav-section-title">视频工具</div>
+            <div class="nav-section-title" data-i18n="videoTools">视频工具</div>
             <div class="nav-item active" data-mode="text-to-video">
                 <i class="fas fa-video"></i>
-                <span>文本转视频</span>
+                <span data-i18n="textToVideoNav">文本转视频</span>
             </div>
             <div class="nav-item" data-mode="image-to-video">
                 <i class="fas fa-image"></i>
-                <span>图像转视频</span>
+                <span data-i18n="imageToVideoNav">图像转视频</span>
             </div>
         </div>
 
         <!-- Image Tools -->
         <div class="nav-section">
-            <div class="nav-section-title">图像工具</div>
+            <div class="nav-section-title" data-i18n="imageTools">图像工具</div>
             <div class="nav-item" data-mode="text-to-image">
                 <i class="fas fa-paintbrush"></i>
-                <span>文本转图像</span>
+                <span data-i18n="textToImageNav">文本转图像</span>
             </div>
             <div class="nav-item" data-mode="image-edit">
                 <i class="fas fa-magic"></i>
-                <span>图像转图像</span>
+                <span data-i18n="imageToImageNav">图像转图像</span>
             </div>
         </div>
 
         <!-- Character Tools -->
         <div class="nav-section">
-            <div class="nav-section-title">角色工具</div>
+            <div class="nav-section-title" data-i18n="characterTools">角色工具</div>
             <div class="nav-item" data-mode="character-create">
                 <i class="fas fa-user-plus"></i>
-                <span>创建角色</span>
+                <span data-i18n="createCharacter">创建角色</span>
             </div>
             <div class="nav-item" data-mode="character-video">
                 <i class="fas fa-film"></i>
-                <span>角色视频</span>
+                <span data-i18n="characterVideo">角色视频</span>
             </div>
             <div class="nav-item" data-mode="character-list">
                 <i class="fas fa-users"></i>
-                <span>我的角色</span>
+                <span data-i18n="myCharacters">我的角色</span>
             </div>
         </div>
 
         <!-- Settings -->
         <div class="nav-section">
-            <div class="nav-section-title">其他</div>
+            <div class="nav-section-title" data-i18n="others">其他</div>
             <div class="nav-item" id="settingsBtn">
                 <i class="fas fa-cog"></i>
-                <span>设置</span>
+                <span data-i18n="settings">设置</span>
             </div>
             <div class="nav-item" id="helpBtn" onclick="window.startOnboarding && window.startOnboarding()">
                 <i class="fas fa-question-circle"></i>
-                <span>使用帮助</span>
+                <span data-i18n="help">使用帮助</span>
             </div>
         </div>
 
@@ -489,12 +507,12 @@
         <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid #2a2a2a;">
             <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 0.75rem; padding: 1rem;">
                 <div style="font-size: 0.75rem; font-weight: 600; color: #a78bfa; margin-bottom: 0.5rem;">
-                    <i class="fas fa-rocket" style="margin-right: 0.5rem;"></i>快速开始
+                    <i class="fas fa-rocket" style="margin-right: 0.5rem;"></i><span data-i18n="quickStart">快速开始</span>
                 </div>
                 <div style="font-size: 0.75rem; color: #9ca3af; line-height: 1.5;">
-                    1. 输入描述文字<br>
-                    2. 选择模型参数<br>
-                    3. 点击生成按钮
+                    <span data-i18n="quickStartStep1">1. 输入描述文字</span><br>
+                    <span data-i18n="quickStartStep2">2. 选择模型参数</span><br>
+                    <span data-i18n="quickStartStep3">3. 点击生成按钮</span>
                 </div>
             </div>
         </div>
@@ -505,13 +523,13 @@
         <!-- Text to Video Section -->
         <div id="text-to-video-section" class="mode-section active">
             <div class="header">
-                <h1 class="header-title">文本生成视频</h1>
+                <h1 class="header-title" data-i18n="textToVideoTitle">文本生成视频</h1>
             </div>
 
             <div class="card">
                 <div class="card-title">
                     <i class="fas fa-pen"></i>
-                    <span>视频描述</span>
+                    <span data-i18n="videoDescription">视频描述</span>
                     <div class="tooltip-wrapper" style="margin-left: 0.5rem;">
                         <i class="fas fa-lightbulb tooltip-icon" style="color: #fbbf24;"></i>
                         <div class="tooltip bottom tooltip-content">

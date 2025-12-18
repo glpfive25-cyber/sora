@@ -129,7 +129,189 @@ const translations = {
         pleaseEnterDescription: "请输入图像描述！",
         pleaseUploadImage: "请上传图像！",
         generatingImage: "生成中...",
-        editingImage: "编辑中..."
+        editingImage: "编辑中...",
+
+        // Navigation
+        videoTools: "视频工具",
+        imageTools: "图像工具",
+        characterTools: "角色工具",
+        others: "其他",
+        textToVideoNav: "文本转视频",
+        imageToVideoNav: "图像转视频",
+        textToImageNav: "文本转图像",
+        imageToImageNav: "图像转图像",
+        createCharacter: "创建角色",
+        characterVideo: "角色视频",
+        myCharacters: "我的角色",
+        settings: "设置",
+        help: "使用帮助",
+        quickStart: "快速开始",
+        limitedTimeFree: "限时免费使用",
+        quickStartStep1: "1. 输入描述文字",
+        quickStartStep2: "2. 选择模型参数",
+        quickStartStep3: "3. 点击生成按钮",
+
+        // Page Titles
+        textToVideoTitle: "文本生成视频",
+        imageToVideoTitle: "图像转视频",
+        textToImageTitle: "文本生成图像",
+        imageToImageTitle: "图像转图像",
+        createCharacterTitle: "���建角色",
+        characterVideoTitle: "角色视频生成",
+        myCharactersTitle: "我的角色",
+
+        // Tips and Guidance
+        descriptionTips: "描述技巧",
+        descriptionSubject: "描述主体：谁/什么在画面中",
+        descriptionAction: "描述动作：正在做什么",
+        descriptionEnvironment: "描述环境：在哪里、什么时间",
+        descriptionAtmosphere: "描述氛围：光线、色调、情绪",
+        detailImprovesResults: "越详细效果越好！",
+        descriptionHint: "提示：描述越详细，生成效果越好",
+        enterVideoDescription: "描述您想要的视频内容",
+        videoPromptExample: "例如: 一只可爱的小猫在草地上玩耍，阳光明媚，蝴蝶飞舞...",
+        characterCount: "字",
+
+        // Model Options
+        selectModel: "选择模型",
+        sora2Landscape10s: "Sora-2 横屏 10秒 (推荐)",
+        sora2Portrait10s: "Sora-2 竖屏 10秒",
+        sora2Landscape15s: "Sora-2-Pro 横屏 15秒",
+        sora2Portrait15s: "Sora-2-Pro 竖屏 15秒",
+        sora2Landscape25s: "Sora-2-Pro 横屏 25秒",
+        sora2Portrait25s: "Sora-2-Pro 竖屏 25秒",
+
+        // UI Elements
+        generateBtn: "生成视频",
+        resetBtn: "重置",
+        downloadBtn: "下载",
+        shareBtn: "分享",
+        removeBtn: "移除",
+        closeBtn: "关闭",
+
+        // Status Messages
+        readyToGenerate: "准备生成你的第一个视频",
+        enterDetailedScene: "在上方输入详细的场景描述，AI 将为你创作精彩视频",
+        readyToAnimate: "准备让图片动起来",
+        uploadAndDescribe: "上传图片并描述动作，AI 将为你创作动态视频",
+        createArtwork: "创作你的 AI 艺术作品",
+        describeImagination: "描述你想象中的画面，AI 将为你绘制",
+        styleConversion: "风格转换魔法",
+        styleConversionDesc: "上传图片，选择艺术风格，一键转换",
+
+        // Quick Examples
+        quickExamples: "点击示例快速填充",
+        catPlaying: "小猫玩耍",
+        cosmosPlanet: "宇宙星球",
+        cherryBlossom: "樱花飘落",
+        dreamCastle: "梦幻城堡",
+        cyberCity: "赛博城市",
+        forestCabin: "森林小屋",
+
+        // Progress and Time
+        processing: "处理中...",
+        elapsed: "已用时间",
+        estimated: "预计剩余时间",
+
+        // Character Related
+        uploadCharacterVideo: "上传角色视频",
+        characterVideoUrl: "视频 URL（推荐）",
+        usePublicVideoUrl: "使用公开视频 URL",
+        defaultTestVideo: "留空使用默认测试视频",
+        orUploadLocal: "或上传本地视频（仅用于预览时间戳）",
+        localVideoWarning: "本地视频无法被 API 访问，请使用上方的 URL 输入",
+        characterTimeRange: "角色出现时间范围",
+        timeRangeTip: "时间范围差值必须在 1-3 秒之间",
+        createCharacterBtn: "创建角色",
+        noCharacterCreated: "还没有创建角色",
+        characterUsage: "角色使用说明",
+        characterSelection: "角色选择",
+        selectCreatedCharacter: "👇 请选择已创建的角色",
+        recommended: "推荐",
+        localCreatedCharacters: "从下拉列表选择本地创建的角色",
+        twoUsageMethods: "两种使用方式：",
+        usageMethod1: "在描述中直接使用 @username（如 @sama）",
+        usageMethod2: "从下拉列表选择本地创建的角色",
+        quickAddCharacter: "快速添加角色",
+
+        // Default Characters
+        sama: "@sama",
+        cow: "奶牛",
+        guangTouQiang: "光头强",
+        xiongDa: "熊大",
+
+        // Character Settings
+        characterModel: "模型",
+        duration: "时长",
+        orientation: "方向",
+        landscape: "横屏",
+        portrait: "竖屏",
+        generateCharacterVideo: "生成角色视频",
+        readyToGenerateCharacterVideo: "准备生成角色视频",
+        selectCharacterAndDescribe: "选择角色并输入场景描述，AI 将为你创作专属视频",
+        createYourCharacter: "创建你的专属角色",
+        characterCreationDesc: "上传角色视频，AI 将学习角色特征，让你可以在任意场景中使用该角色生成视频",
+        createFirstCharacter: "创建第一个角色",
+
+        // Notices
+        importantNotes: "注意事项",
+        noRealPerson: "不能使用真人视频",
+        recommendAnime: "推荐动画/卡通角色",
+
+        // Settings
+        settingsTitle: "设置与使用指南",
+        usageFlow: "本站使用流程",
+        rechargeBalance: "充值余额",
+        newUserTrial: "新用户可试用",
+        loginSystem: "登录系统",
+        getApiToken: "获取API令牌",
+        usageFlowTip: "获取令牌后，请在下方填入以开始使用AI生成功能",
+        apiConfiguration: "API 配置",
+        apiKeyLabel: "API 密钥",
+        apiKeyPlaceholder: "请输入您的API令牌，留空使用内置密钥",
+        apiKeyInstructions: "API密钥获取步骤：\n1. 完成注册和登录\n2. 充值账户余额\n3. 在控制台生成API令牌\n4. 复制令牌到此处填写",
+        configurationInstructions: "配置说明：\n• 统一使用 https://api.maynor1024.live/ API\n• 填写你的 API Key 即可开始使用\n• 留空将使用内置免费密钥",
+        saveSettings: "保存设置",
+        restoreDefaults: "恢复默认",
+
+        // Help Menu
+        viewGuideAgain: "重新查看引导",
+        apiSettings: "API 设置",
+        registerAccount: "注册账号",
+        getApiTokenHelp: "获取 API 令牌",
+
+        // Character Video Requirements
+        characterVideoRequirements: "角色视频要求：",
+        supportedFormats: "支持 MP4、AVI、MOV 格式",
+        videoDuration: "视频时长建议 5-30 秒",
+        noRealPersonWarning: "不能出现真人",
+        characterVisible: "角色要清晰可见",
+        recommendAnimated: "推荐动画、卡通、虚拟角色",
+        timeSettingsTips: "时间设置技巧：",
+        timeTip1: "选择 1-3 秒的清晰片段",
+        timeTip2: "角色应该是正面或侧面特写",
+        timeTip3: "避免模糊、快速移动的画面",
+        timeTip4: "确保角色完整无遮挡",
+        timeTip5: "在视频预览中找到最佳画面",
+        characterUsageTips: "角色使用说明：",
+        usageTip1: "从下拉列表选择已创建的角色",
+        usageTip2: "每个角色可以重复使用",
+        usageTip3: "角色将用于视频生成中的主体",
+        usageTip4: "不同场景可使用相同角色",
+        usageTip5: "没有角色？先去"创建角色"",
+        characterDescriptionTips: "描述技巧：",
+        descTip1: "详细描述场景、动作、环境",
+        descTip2: "包含角色的表情和动作",
+        descTip3: "指定背景和氛围",
+        descTip4: "示例："开心的卡通角色在花园里跳舞"",
+        descTip5: "越详细效果越好",
+
+        // Time and Units
+        seconds10: "10秒",
+        seconds15: "15秒",
+        seconds25: "25秒",
+        startTime: "开始时间(秒)",
+        endTime: "结束时间(秒)"
     },
     en: {
         // Header
@@ -260,8 +442,189 @@ const translations = {
         pleaseEnterDescription: "Please enter image description!",
         pleaseUploadImage: "Please upload an image!",
         generatingImage: "Generating...",
-        editingImage: "Editing..."
-    }
+        editingImage: "Editing...",
+
+        // Navigation
+        videoTools: "Video Tools",
+        imageTools: "Image Tools",
+        characterTools: "Character Tools",
+        others: "Others",
+        textToVideoNav: "Text to Video",
+        imageToVideoNav: "Image to Video",
+        textToImageNav: "Text to Image",
+        imageToImageNav: "Image to Image",
+        createCharacter: "Create Character",
+        characterVideo: "Character Video",
+        myCharacters: "My Characters",
+        settings: "Settings",
+        help: "Help",
+        quickStart: "Quick Start",
+        limitedTimeFree: "Limited Time Free",
+        quickStartStep1: "1. Enter description text",
+        quickStartStep2: "2. Select model parameters",
+        quickStartStep3: "3. Click generate button",
+
+        // Page Titles
+        textToVideoTitle: "Text to Video Generation",
+        imageToVideoTitle: "Image to Video Generation",
+        textToImageTitle: "Text to Image Generation",
+        imageToImageTitle: "Image to Image",
+        createCharacterTitle: "Create Character",
+        characterVideoTitle: "Character Video Generation",
+        myCharactersTitle: "My Characters",
+
+        // Tips and Guidance
+        descriptionTips: "Description Tips",
+        descriptionSubject: "Describe subject: Who/what is in the scene",
+        descriptionAction: "Describe action: What is happening",
+        descriptionEnvironment: "Describe environment: Where and when",
+        descriptionAtmosphere: "Describe atmosphere: Lighting, colors, mood",
+        detailImprovesResults: "More detail = better results!",
+        descriptionHint: "💡 Tip: More detailed descriptions give better results",
+        enterVideoDescription: "Describe the video content you want",
+        videoPromptExample: "e.g: A cute kitten playing on grass in sunny weather with butterflies flying around...",
+        characterCount: "characters",
+
+        // Model Options
+        selectModel: "Select Model",
+        sora2Landscape10s: "Sora-2 Landscape 10s (Recommended)",
+        sora2Portrait10s: "Sora-2 Portrait 10s",
+        sora2Landscape15s: "Sora-2-Pro Landscape 15s",
+        sora2Portrait15s: "Sora-2-Pro Portrait 15s",
+        sora2Landscape25s: "Sora-2-Pro Landscape 25s",
+        sora2Portrait25s: "Sora-2-Pro Portrait 25s",
+
+        // UI Elements
+        generateBtn: "Generate Video",
+        resetBtn: "Reset",
+        downloadBtn: "Download",
+        shareBtn: "Share",
+        removeBtn: "Remove",
+        closeBtn: "Close",
+
+        // Status Messages
+        readyToGenerate: "Ready to generate your first video",
+        enterDetailedScene: "Enter detailed scene description above, AI will create amazing videos for you",
+        readyToAnimate: "Ready to animate images",
+        uploadAndDescribe: "Upload images and describe actions, AI will create dynamic videos for you",
+        createArtwork: "Create your AI artwork",
+        describeImagination: "Describe your imagination, AI will draw it for you",
+        styleConversion: "Style Conversion Magic",
+        styleConversionDesc: "Upload images, select artistic styles, one-click conversion",
+
+        // Quick Examples
+        quickExamples: "Click examples for quick fill",
+        catPlaying: "Kitten Playing",
+        cosmosPlanet: "Cosmos Planet",
+        cherryBlossom: "Cherry Blossom",
+        dreamCastle: "Dream Castle",
+        cyberCity: "Cyber City",
+        forestCabin: "Forest Cabin",
+
+        // Progress and Time
+        processing: "Processing...",
+        elapsed: "Elapsed time",
+        estimated: "Estimated remaining time",
+
+        // Character Related
+        uploadCharacterVideo: "Upload Character Video",
+        characterVideoUrl: "Video URL (Recommended)",
+        usePublicVideoUrl: "Use public video URL",
+        defaultTestVideo: "Leave empty to use default test video",
+        orUploadLocal: "Or upload local video (for timestamp preview only)",
+        localVideoWarning: "Local videos cannot be accessed by API, please use the URL input above",
+        characterTimeRange: "Character appearance time range",
+        timeRangeTip: "Time range difference must be between 1-3 seconds",
+        createCharacterBtn: "Create Character",
+        noCharacterCreated: "No characters created yet",
+        characterUsage: "Character Usage Instructions",
+        characterSelection: "Character Selection",
+        selectCreatedCharacter: "👇 Please select created character",
+        recommended: "Recommended",
+        localCreatedCharacters: "Select locally created characters from dropdown",
+        twoUsageMethods: "Two usage methods:",
+        usageMethod1: "Use @username directly in description (e.g @sama)",
+        usageMethod2: "Select locally created characters from dropdown",
+        quickAddCharacter: "Quick Add Character",
+
+        // Default Characters
+        sama: "@sama",
+        cow: "Cow",
+        guangTouQiang: "Logger Vick",
+        xiongDa: "Briar",
+
+        // Character Settings
+        characterModel: "Model",
+        duration: "Duration",
+        orientation: "Orientation",
+        landscape: "Landscape",
+        portrait: "Portrait",
+        generateCharacterVideo: "Generate Character Video",
+        readyToGenerateCharacterVideo: "Ready to generate character video",
+        selectCharacterAndDescribe: "Select character and enter scene description, AI will create exclusive video for you",
+        createYourCharacter: "Create your exclusive character",
+        characterCreationDesc: "Upload character video, AI will learn character features, allowing you to use this character in any scene",
+        createFirstCharacter: "Create First Character",
+
+        // Notices
+        importantNotes: "Important Notes",
+        noRealPerson: "Cannot use real person videos",
+        recommendAnime: "Recommend animation/cartoon characters",
+
+        // Settings
+        settingsTitle: "Settings & User Guide",
+        usageFlow: "Site Usage Flow",
+        rechargeBalance: "Recharge Balance",
+        newUserTrial: "New user trial available",
+        loginSystem: "Login System",
+        getApiToken: "Get API Token",
+        usageFlowTip: "After getting token, please fill it below to start using AI generation features",
+        apiConfiguration: "API Configuration",
+        apiKeyLabel: "API Key",
+        apiKeyPlaceholder: "Enter your API token, leave empty to use built-in key",
+        apiKeyInstructions: "API Key Acquisition Steps:\n1. Complete registration and login\n2. Recharge account balance\n3. Generate API token in console\n4. Copy token to fill here",
+        configurationInstructions: "Configuration Instructions:\n• Use unified API: https://api.maynor1024.live/\n• Fill in your API Key to start using\n• Leave empty to use built-in free key",
+        saveSettings: "Save Settings",
+        restoreDefaults: "Restore Defaults",
+
+        // Help Menu
+        viewGuideAgain: "View Guide Again",
+        apiSettings: "API Settings",
+        registerAccount: "Register Account",
+        getApiTokenHelp: "Get API Token",
+
+        // Character Video Requirements
+        characterVideoRequirements: "Character Video Requirements:",
+        supportedFormats: "Supports MP4, AVI, MOV formats",
+        videoDuration: "Recommended video duration 5-30 seconds",
+        noRealPersonWarning: "No real people allowed",
+        characterVisible: "Character should be clearly visible",
+        recommendAnimated: "Recommend animation, cartoon, virtual characters",
+        timeSettingsTips: "Time Settings Tips:",
+        timeTip1: "Select 1-3 seconds of clear footage",
+        timeTip2: "Character should be front or side close-up",
+        timeTip3: "Avoid blurry, fast-moving scenes",
+        timeTip4: "Ensure character is complete and unobstructed",
+        timeTip5: "Find best shots in video preview",
+        characterUsageTips: "Character Usage Instructions:",
+        usageTip1: "Select created characters from dropdown",
+        usageTip2: "Each character can be reused",
+        usageTip3: "Character will be used as main subject in video generation",
+        usageTip4: "Different scenes can use same character",
+        usageTip5: "No character? Go to 'Create Character' first",
+        characterDescriptionTips: "Description Tips:",
+        descTip1: "Describe scenes, actions, environment in detail",
+        descTip2: "Include character expressions and actions",
+        descTip3: "Specify background and atmosphere",
+        descTip4: "Example: 'Happy cartoon character dancing in garden'",
+        descTip5: "More detail = better results",
+
+        // Time and Units
+        seconds10: "10s",
+        seconds15: "15s",
+        seconds25: "25s",
+        startTime: "Start time(s)",
+        endTime: "End time(s)"
 };
 
 // Language Management
