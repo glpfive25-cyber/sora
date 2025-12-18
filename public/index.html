@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sora2 Imagine - AI 生成器</title>
+    <title data-i18n="appTitle">Sora2 Imagine - AI 生成器</title>
     <link rel="icon" type="image/png" href="https://restname.oss-cn-hangzhou.aliyuncs.com/202510301728294.png">
 
     <!-- Google tag (gtag.js) -->
@@ -546,34 +546,34 @@
                 </div>
                 <form id="videoForm">
                     <div class="input-group">
-                        <label class="input-label">描述您想要的视频内容</label>
-                        <textarea id="videoPrompt" class="input-field" placeholder="例如: 一只可爱的小猫在草地上玩耍，阳光明媚，蝴蝶飞舞..."></textarea>
+                        <label class="input-label" data-i18n="enterVideoDescription">描述您想要的视频内容</label>
+                        <textarea id="videoPrompt" class="input-field" data-i18n="videoPromptExample" placeholder="例如: 一只可爱的小猫在草地上玩耍，阳光明媚，蝴蝶飞舞..."></textarea>
                         <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                            <span style="font-size: 0.75rem; color: #666;">💡 提示：描述越详细，生成效果越好</span>
-                            <span id="promptCharCount" style="font-size: 0.75rem; color: #666;">0 字</span>
+                            <span style="font-size: 0.75rem; color: #666;" data-i18n="descriptionHint">💡 提示：描述越详细，生成效果越好</span>
+                            <span id="promptCharCount" style="font-size: 0.75rem; color: #666;" data-i18n="characterCount">0 字</span>
                         </div>
                     </div>
 
                     <div class="input-group">
-                        <label class="input-label">选择模型</label>
+                        <label class="input-label" data-i18n="selectModel">选择模型</label>
                         <select id="modelSelect" class="input-field">
-                            <option value="sora_video2">Sora-2 横屏 10秒 (推荐)</option>
-                            <option value="sora_video2-portrait">Sora-2 竖屏 10秒</option>
-                            <option value="sora_video2-landscape-15s">Sora-2-Pro 横屏 15秒</option>
-                            <option value="sora_video2-portrait-15s">Sora-2-Pro 竖屏 15秒</option>
-                            <option value="sora_video2-landscape-25s">Sora-2-Pro 横屏 25秒</option>
-                            <option value="sora_video2-portrait-25s">Sora-2-Pro 竖屏 25秒</option>
+                            <option value="sora_video2" data-i18n="sora2Landscape10s">Sora-2 横屏 10秒 (推荐)</option>
+                            <option value="sora_video2-portrait" data-i18n="sora2Portrait10s">Sora-2 竖屏 10秒</option>
+                            <option value="sora_video2-landscape-15s" data-i18n="sora2Landscape15s">Sora-2-Pro 横屏 15秒</option>
+                            <option value="sora_video2-portrait-15s" data-i18n="sora2Portrait15s">Sora-2-Pro 竖屏 15秒</option>
+                            <option value="sora_video2-landscape-25s" data-i18n="sora2Landscape25s">Sora-2-Pro 横屏 25秒</option>
+                            <option value="sora_video2-portrait-25s" data-i18n="sora2Portrait25s">Sora-2-Pro 竖屏 25秒</option>
                         </select>
                     </div>
 
                     <div style="display: flex; gap: 0.75rem;">
                         <button type="submit" id="generateBtn" class="btn btn-primary" style="flex: 1;">
                             <i class="fas fa-play"></i>
-                            <span>生成视频</span>
+                            <span data-i18n="generateBtn">生成视频</span>
                         </button>
                         <button type="button" id="resetBtn" class="btn btn-secondary">
                             <i class="fas fa-redo"></i>
-                            <span>重置</span>
+                            <span data-i18n="resetBtn">重置</span>
                         </button>
                     </div>
                 </form>

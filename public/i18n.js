@@ -311,7 +311,10 @@ const translations = {
         seconds15: "15秒",
         seconds25: "25秒",
         startTime: "开始时间(秒)",
-        endTime: "结束时间(秒)"
+        endTime: "结束时间(秒)",
+
+        // App Title
+        appTitle: "Sora2 Imagine - AI 生成器"
     },
     en: {
         // Header
@@ -624,7 +627,10 @@ const translations = {
         seconds15: "15s",
         seconds25: "25s",
         startTime: "Start time(s)",
-        endTime: "End time(s)"
+        endTime: "End time(s)",
+
+        // App Title
+        appTitle: "Sora2 Imagine - AI Generator"
 };
 
 // Language Management
@@ -660,23 +666,69 @@ class I18n {
                 element.placeholder = translation;
             } else if (element.tagName === 'OPTION') {
                 element.textContent = translation;
+            } else if (element.tagName === 'TITLE') {
+                element.textContent = translation;
             } else {
-                // Check if element has icon
+                // Check if element has icon or other children
                 const icon = element.querySelector('i');
-                if (icon) {
-                    const iconHTML = icon.outerHTML;
-                    element.innerHTML = iconHTML + ' ' + translation;
+                if (icon && element.children.length > 0 && element.tagName !== 'OPTION') {
+                    // Preserve icons and other elements, only update text nodes
+                    const hasTextNodes = Array.from(element.childNodes).some(node =>
+                        node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+                    );
+
+                    if (hasTextNodes) {
+                        // Update only text nodes
+                        Array.from(element.childNodes).forEach(node => {
+                            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                                node.textContent = ' ' + translation;
+                            }
+                        });
+                    } else {
+                        // If no text nodes, add translation after existing content
+                        const existingHTML = element.innerHTML;
+                        element.innerHTML = existingHTML + ' ' + translation;
+                    }
                 } else {
                     element.textContent = translation;
                 }
             }
         });
 
+        // Update page title if not already handled
+        const titleElement = document.querySelector('title');
+        if (titleElement && titleElement.getAttribute('data-i18n')) {
+            titleElement.textContent = this.t(titleElement.getAttribute('data-i18n'));
+        } else if (titleElement && !titleElement.getAttribute('data-i18n')) {
+            titleElement.textContent = this.t('appTitle');
+        }
+
+        // Update language text display
+        const currentLangText = document.getElementById('currentLangText');
+        if (currentLangText) {
+            currentLangText.textContent = this.currentLang === 'zh' ? '中文' : 'English';
+        }
+
+        // Update specific elements without data-i18n attributes
+        this.updateStaticElements();
+
         // Update document language
         document.documentElement.lang = this.currentLang;
 
         // Dispatch event for dynamic content
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: this.currentLang }));
+    }
+
+    updateStaticElements() {
+        // Handle special cases that can't be covered by data-i18n attributes
+        // Character counter update - handle current count
+        const charCounter = document.getElementById('promptCharCount');
+        if (charCounter && !charCounter.textContent.match(/^\d+/)) {
+            const currentText = charCounter.textContent;
+            const count = currentText.match(/\d+/)?.[0] || '0';
+            const unitText = this.t('characterCount');
+            charCounter.textContent = count + ' ' + unitText;
+        }
     }
 }
 
