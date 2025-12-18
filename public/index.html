@@ -516,6 +516,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Update Time -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2a2a2a;">
+            <div style="text-align: center;">
+                <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem;" data-i18n="lastUpdate">最后更新</div>
+                <div id="updateTime" style="font-size: 0.875rem; font-weight: 600; color: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <i class="fas fa-sync-alt" id="updateIcon" style="font-size: 0.75rem;"></i>
+                    <span>计算中...</span>
+                </div>
+            </div>
+        </div>
     </aside>
 
     <!-- Main Content -->
@@ -1476,6 +1487,142 @@
     
     <!-- Debug: Test Onboarding Button (Remove in production) -->
     <script>
+        // 更新时间显示功能
+        class UpdateTimeDisplay {
+            constructor() {
+                this.updateElement = document.getElementById('updateTime');
+                this.updateIcon = document.getElementById('updateIcon');
+                this.storageKey = 'sora2-last-update-date';
+                this.init();
+            }
+
+            init() {
+                // 初始化更新时间
+                this.updateLastUpdateTime();
+
+                // 每天检查并更新时间（凌晨刷新）
+                this.scheduleDailyUpdate();
+
+                // 每分钟检查时间显示
+                setInterval(() => this.updateDisplay(), 60000);
+
+                // 页面可见性改变时更新显示
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        this.updateDisplay();
+                    }
+                });
+            }
+
+            getLastUpdateTime() {
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    return new Date(stored);
+                }
+
+                // 如果没有存储的日期，使用今天作为首次更新
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                this.saveUpdateTime(today);
+                return today;
+            }
+
+            saveUpdateTime(date = new Date()) {
+                localStorage.setItem(this.storageKey, date.toISOString());
+            }
+
+            shouldUpdate() {
+                const lastUpdate = this.getLastUpdateTime();
+                const now = new Date();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // 如果最后更新时间不是今天，则需要更新
+                return lastUpdate < today;
+            }
+
+            updateLastUpdateTime() {
+                if (this.shouldUpdate()) {
+                    this.saveUpdateTime();
+                    this.animateUpdate();
+                }
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                if (!this.updateElement) return;
+
+                const lastUpdate = this.getLastUpdateTime();
+                const now = new Date();
+                const diffTime = now - lastUpdate;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                let displayText = '';
+                const lang = window.i18n?.getCurrentLanguage() || 'zh';
+
+                if (diffDays === 0) {
+                    displayText = lang === 'zh' ? '今天' : 'Today';
+                } else if (diffDays === 1) {
+                    displayText = lang === 'zh' ? '昨天' : 'Yesterday';
+                } else if (diffDays < 7) {
+                    displayText = lang === 'zh' ? `${diffDays}天前` : `${diffDays} days ago`;
+                } else {
+                    // 超过一周显示具体日期
+                    const dateStr = lastUpdate.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    displayText = dateStr;
+                }
+
+                const timeStr = lastUpdate.toLocaleTimeString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const finalText = lang === 'zh' ? `${displayText} ${timeStr}` : `${displayText} at ${timeStr}`;
+
+                const spanElement = this.updateElement.querySelector('span');
+                if (spanElement) {
+                    spanElement.textContent = finalText;
+                }
+            }
+
+            animateUpdate() {
+                if (this.updateIcon) {
+                    this.updateIcon.style.animation = 'spin 1s linear';
+                    setTimeout(() => {
+                        if (this.updateIcon) {
+                            this.updateIcon.style.animation = '';
+                        }
+                    }, 1000);
+                }
+            }
+
+            scheduleDailyUpdate() {
+                // 计算到下一个凌晨的时间
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+
+                const msUntilMidnight = tomorrow - now;
+
+                setTimeout(() => {
+                    this.updateLastUpdateTime();
+                    // 递归调用，每天重复
+                    this.scheduleDailyUpdate();
+                }, msUntilMidnight);
+            }
+
+            // 公开方法，手动更新
+            forceUpdate() {
+                this.saveUpdateTime();
+                this.animateUpdate();
+                this.updateDisplay();
+            }
+        }
+
         // 添加键盘快捷键：按 Ctrl+Shift+H 重新显示引导
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'H') {
@@ -1485,13 +1632,16 @@
                 }
             }
         });
-        
-        // 页面加载后检查引导状态
+
+        // 页面加载后初始化
         window.addEventListener('load', () => {
             console.log('[Debug] Page loaded, checking onboarding status');
             const completed = localStorage.getItem('sora2-onboarding-completed');
             console.log('[Debug] Onboarding completed:', completed);
-            
+
+            // 初始化更新时间显示
+            window.updateTimeDisplay = new UpdateTimeDisplay();
+
             // 添加全局调试函数
             window.debugOnboarding = {
                 reset: () => {
@@ -1515,7 +1665,7 @@
                     console.log('  - API reminder:', localStorage.getItem('sora2-api-reminder-shown'));
                 }
             };
-            
+
             console.log('[Debug] 调试命令已加载，使用方法：');
             console.log('  - debugOnboarding.reset()  // 重置引导');
             console.log('  - debugOnboarding.start()  // 启动引导');

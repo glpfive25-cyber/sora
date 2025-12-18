@@ -314,7 +314,10 @@ const translations = {
         endTime: "结束时间(秒)",
 
         // App Title
-        appTitle: "Sora2 Imagine - AI 生成器"
+        appTitle: "Sora2 Imagine - AI 生成器",
+
+        // Update Time
+        lastUpdate: "最后更新"
     },
     en: {
         // Header
@@ -630,7 +633,10 @@ const translations = {
         endTime: "End time(s)",
 
         // App Title
-        appTitle: "Sora2 Imagine - AI Generator"
+        appTitle: "Sora2 Imagine - AI Generator",
+
+        // Update Time
+        lastUpdate: "Last Updated"
 };
 
 // Language Management
