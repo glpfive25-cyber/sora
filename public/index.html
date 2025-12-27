@@ -1067,16 +1067,33 @@
                             </div>
                         </div>
                     </label>
-                    <input 
-                        type="text" 
-                        id="characterVideoUrl" 
-                        class="input-field" 
+                    <input
+                        type="text"
+                        id="characterVideoUrl"
+                        class="input-field"
                         placeholder="https://example.com/video.mp4"
-                        value="https://8416963274f2331f023308de32d91f68.v.smtcdns.com/om.tc.qq.com/Z_ClRTIi23tqalasKzlu_YR0fWng9Xv04u3ZGbIL70Lg2pjIkRZgEtx6xOkqOKa97ojTaSHb-vcwLdCd0j11Hve7-mOJ3pCzeJ587f_VNZS_1_JUu0IRxv9sUqVxsjOIGV/B_fXrb0otmtGHxqhZ5HYDTdv_50IatG_R7x3ILiYm6X5VFqRz4QmhKVVPzQa_5vJcG2yKUH4FMFYsyjV6qpALwP5_38uMbkWXWqYv9o9WHb-019rb6ZA47pLsE1EwuiT1jEFVCF7MKD6OZg27oYWZplg/svp_50200/njc_1000195_0bc33ucpiaaeryak6n4w6zrrzxoe6toqj5ca.f2.mp4?vkey=FC96EF88E0E6F55D9AA0DF91DE59809BC1614ACA08C4148881D84771CD81FC5C855570960EC0C2198AE9A006258A79F4DDFA21B893B6405F704950407986C7F1A5742B6CD0D2FF3C643B13CE4BA1DC5BFADE662D9293180B331381FF449B0CA77011EC34DC5763BCCFDC60922B9C89852ED9578767799C1164D92874E7A9E03ECF05AB6CA20D566B"
+                        value="https://upos-sz-mirrorhw.bilivideo.com/upgcxcode/73/02/30711220273/30711220273-1-192.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&nbs=1&trid=56cbd032d3ee4ec1b19b59c174cb4c2h&uipk=5&platform=html5&oi=1697279245&os=estghw&deadline=1766847707&mid=0&gen=playurlv3&og=hw&upsig=dc925ea429059acca0f7a5bee4ab03ff&uparams=e,nbs,trid,uipk,platform,oi,os,deadline,mid,gen,og&bvc=vod&nettype=0&bw=498080&agrr=0&buvid=&build=0&dl=0&f=h_0_0&orderid=0,1"
                     >
-                    <p style="color: #666; font-size: 0.75rem; margin-top: 0.5rem;">
-                        💡 留空使用默认测试视频，或输入你自己的公开视频 URL
-                    </p>
+                    <!-- 快速选择默认视频 -->
+                    <div style="margin-top: 0.75rem;">
+                        <p style="color: #999; font-size: 0.75rem; margin-bottom: 0.5rem;">
+                            <i class="fas fa-bolt" style="color: #fbbf24;"></i> 快速选择示例视频：
+                        </p>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" onclick="document.getElementById('characterVideoUrl').value='https://upos-sz-mirrorhw.bilivideo.com/upgcxcode/73/02/30711220273/30711220273-1-192.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&nbs=1&trid=56cbd032d3ee4ec1b19b59c174cb4c2h&uipk=5&platform=html5&oi=1697279245&os=estghw&deadline=1766847707&mid=0&gen=playurlv3&og=hw&upsig=dc925ea429059acca0f7a5bee4ab03ff&uparams=e,nbs,trid,uipk,platform,oi,os,deadline,mid,gen,og&bvc=vod&nettype=0&bw=498080&agrr=0&buvid=&build=0&dl=0&f=h_0_0&orderid=0,1'; showMessage('已选择默认视频1', 'success');" style="background: linear-gradient(135deg, #fb7299 0%, #e23a75 100%); color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                                默认视频1
+                            </button>
+                            <button type="button" onclick="document.getElementById('characterVideoUrl').value='https://upos-sz-mirrorhw.bilivideo.com/upgcxcode/44/78/33759297844/33759297844-1-192.mp4?e=ig8euxZM2rNcNbRz7zdVhwdlhWhahwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&trid=3aefa76516a249b2b8ce260427cc08dh&os=08hbv&deadline=1766847813&nbs=1&platform=html5&mid=0&oi=1697279245&gen=playurlv3&og=hw&uipk=5&upsig=eb3b8c1882b47a1e65c678788486ac1c&uparams=e,trid,os,deadline,nbs,platform,mid,oi,gen,og,uipk&bvc=vod&nettype=0&bw=1099313&agrr=0&buvid=&build=0&dl=0&f=h_0_0&orderid=0,1'; showMessage('已选择默认视频2', 'success');" style="background: linear-gradient(135deg, #fb7299 0%, #e23a75 100%); color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                                默认视频2
+                            </button>
+                            <button type="button" onclick="document.getElementById('characterVideoUrl').value='https://filesystem.site/cdn/20251030/javYrU4etHVFDqg8by7mViTWHlMOZy.mp4'; showMessage('已选择默认视频3', 'success');" style="background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                                备用视频
+                            </button>
+                        </div>
+                        <p style="color: #666; font-size: 0.75rem; margin-top: 0.5rem;">
+                            💡 留空使用默认测试视频，或输入你自己的公开视频 URL
+                        </p>
+                    </div>
                 </div>
 
                 <!-- 或者上传本地视频（仅预览用） -->
@@ -1207,8 +1224,14 @@
                         <!-- 默认角色快速选择 -->
                         <div style="margin-top: 0.75rem;">
                             <p style="color: #999; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                                <i class="fas fa-star" style="color: #fbbf24;"></i> 快速添加角色：
+                                <i class="fas fa-star" style="color: #fbbf24;"></i> 快速添加预设角色：
                             </p>
+                            <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.75rem;">
+                                <p style="color: #fbbf24; font-size: 0.75rem; margin: 0;">
+                                    <i class="fas fa-exclamation-triangle" style="margin-right: 0.25rem;"></i>
+                                    <strong>注意：</strong>预设角色需要配置有效的 API Key 才能使用。请点击右上角设置按钮配置您的 API 令牌。
+                                </p>
+                            </div>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <button type="button" class="character-quick-btn" onclick="insertCharacter('@sama')" style="background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;">
                                     <i class="fas fa-crown"></i> @sama
@@ -1627,7 +1650,7 @@
         });
     </script>
     <script src="tooltip.js"></script>
-    <script src="character.js?v=3"></script>
+    <script src="character.js?v=6"></script>
     <script src="onboarding.js"></script>
 
     <!-- Debug: Test Onboarding Button (Remove in production) -->

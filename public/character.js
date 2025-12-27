@@ -127,9 +127,10 @@
 
             // 优先使用 URL 输入框的值
             const videoUrlInput = document.getElementById('characterVideoUrl');
-            let videoUrl = videoUrlInput && videoUrlInput.value.trim() 
+            const defaultVideoUrl = 'https://upos-sz-mirrorhw.bilivideo.com/upgcxcode/73/02/30711220273/30711220273-1-192.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&nbs=1&trid=56cbd032d3ee4ec1b19b59c174cb4c2h&uipk=5&platform=html5&oi=1697279245&os=estghw&deadline=1766847707&mid=0&gen=playurlv3&og=hw&upsig=dc925ea429059acca0f7a5bee4ab03ff&uparams=e,nbs,trid,uipk,platform,oi,os,deadline,mid,gen,og&bvc=vod&nettype=0&bw=498080&agrr=0&buvid=&build=0&dl=0&f=h_0_0&orderid=0,1';
+            let videoUrl = videoUrlInput && videoUrlInput.value.trim()
                 ? videoUrlInput.value.trim()
-                : 'https://8416963274f2331f023308de32d91f68.v.smtcdns.com/om.tc.qq.com/Z_ClRTIi23tqalasKzlu_YR0fWng9Xv04u3ZGbIL70Lg2pjIkRZgEtx6xOkqOKa97ojTaSHb-vcwLdCd0j11Hve7-mOJ3pCzeJ587f_VNZS_1_JUu0IRxv9sUqVxsjOIGV/B_fXrb0otmtGHxqhZ5HYDTdv_50IatG_R7x3ILiYm6X5VFqRz4QmhKVVPzQa_5vJcG2yKUH4FMFYsyjV6qpALwP5_38uMbkWXWqYv9o9WHb-019rb6ZA47pLsE1EwuiT1jEFVCF7MKD6OZg27oYWZplg/svp_50200/njc_1000195_0bc33ucpiaaeryak6n4w6zrrzxoe6toqj5ca.f2.mp4?vkey=FC96EF88E0E6F55D9AA0DF91DE59809BC1614ACA08C4148881D84771CD81FC5C855570960EC0C2198AE9A006258A79F4DDFA21B893B6405F704950407986C7F1A5742B6CD0D2FF3C643B13CE4BA1DC5BFADE662D9293180B331381FF449B0CA77011EC34DC5763BCCFDC60922B9C89852ED9578767799C1164D92874E7A9E03ECF05AB6CA20D566B';
+                : defaultVideoUrl;
             
             // 如果用户上传了本地视频，提示使用 URL
             if (currentCharacterVideoData) {
@@ -152,7 +153,7 @@
 
             // 生成本地角色 ID 和用户名
             const localId = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            const localUsername = 'character_' + Math.random().toString(36).substr(2, 6);
+            const localUsername = 'mychar_' + Math.random().toString(36).substr(2, 6);
 
             // 保存角色数据到本地
             const fullCharacter = {
@@ -185,21 +186,46 @@
                         <h3 class="text-lg font-bold mb-2">角色已保存！</h3>
                         <div style="background: #1a1a1a; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0;">
                             <p style="font-size: 0.875rem;"><strong>角色ID:</strong> ${localId}</p>
+                            <p style="font-size: 0.875rem;"><strong>角色名称:</strong> @${localUsername}</p>
                             <p style="font-size: 0.875rem;"><strong>视频URL:</strong> ${videoUrl.substring(0, 50)}...</p>
                             <p style="font-size: 0.875rem;"><strong>时间范围:</strong> ${start}s - ${end}s</p>
                             <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem;">
-                                使用方式：在"角色视频生成"中选择此角色，系统将直接使用视频URL和时间戳生成视频
+                                使用方式：在"角色视频生成"中选择此角色，或在描述中使用 @${localUsername}
                             </p>
                         </div>
-                        <button onclick="switchMode('character-video')" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
-                            <i class="fas fa-video"></i>
-                            <span>使用此角色生成视频</span>
-                        </button>
+                        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="switchMode('character-video')" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
+                                <i class="fas fa-video"></i>
+                                <span>使用此角色生成视频</span>
+                            </button>
+                            <button onclick="window.copyToClipboard && window.copyToClipboard('@${localUsername}')" style="background: #10b981; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
+                                <i class="fas fa-copy"></i>
+                                <span>复制 @${localUsername}</span>
+                            </button>
+                        </div>
                     </div>
                 `;
             }
 
-            showMessage(`角色已保存！可以在"角色视频生成"中使用`, 'success');
+            // 添加复制到剪贴板的全局函数
+            if (!window.copyToClipboard) {
+                window.copyToClipboard = function(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showMessage('已复制: ' + text, 'success');
+                    }).catch(() => {
+                        // 后备方案
+                        const textarea = document.createElement('textarea');
+                        textarea.value = text;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        showMessage('已复制: ' + text, 'success');
+                    });
+                };
+            }
+
+            showMessage(`角色已保存！@${localUsername} 可在"角色视频生成"中使用`, 'success');
 
         } catch (error) {
             console.error('[CHARACTER] Error creating character:', error);
@@ -255,8 +281,9 @@
             // 显示进度指示器
             showCharacterProgress();
 
-            // 检查 prompt 中是否包含 @username（支持字母、数字、点号）
-            const mentionMatch = prompt.match(/@([\w.]+)/);
+            // 检查 prompt 中是否包含 @username 或 @{username}（支持字母、数字、点号、连字符、下划线）
+            // API 文档格式：@{username} 在舞台上跳舞
+            const mentionMatch = prompt.match(/@\{?([\w.-]+)\}?/);
             const mentionedUsername = mentionMatch ? mentionMatch[1] : null;
 
             // 根据 API 文档构建请求数据
@@ -273,11 +300,20 @@
             };
 
             // 方式1：如果 prompt 中包含 @username，直接使用（推荐方式）
-            // 例如：@sama explaining AI in a futuristic lab
+            // 根据 API 文档，格式应该是 @{username} 在舞台上跳舞
+            // 但为了方便用户，我们支持 @username 格式，并自动转换为 @{username} 格式
             if (mentionedUsername) {
-                console.log('[CHARACTER] Using @username in prompt:', mentionedUsername);
-                // API 会自动识别 prompt 中的 @username
-                // 不需要额外的 character_url 和 character_timestamps
+                // 将 @username 格式转换为 @{username} 格式
+                // API 文档要求：@{角色1Username} 在一个舞台上和 @{角色2Username} 牵手跳舞
+                requestData.prompt = prompt.replace(/@(\{?[\w.-]+\}?)/g, (match, p1) => {
+                    // 如果已经是 @{username} 格式，保持���变
+                    if (match.startsWith('@{')) {
+                        return match;
+                    }
+                    // 否则转换为 @{username} 格式
+                    return '@{' + p1 + '}';
+                });
+                console.log('[CHARACTER] Converted prompt with @username to API format:', requestData.prompt);
             }
             // 方式2：如果选择了角色，添加角色 URL 和时间戳（传统方式）
             else if (characterSelect && characterSelect.value) {
@@ -301,7 +337,31 @@
             console.log('[CHARACTER] Using local server proxy to avoid CORS issues');
 
             // 获取自定义 API 配置（统一使用单一 API 配置）
-            const customConfig = getApiConfig ? getApiConfig() : null;
+            // 安全地获取 getApiConfig 函数
+            const getApiConfig = window.getApiConfig || (() => {
+                const API_CONFIG_KEY = 'sora2-api-config';
+                const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+                try {
+                    const config = localStorage.getItem(API_CONFIG_KEY);
+                    if (config) {
+                        const parsedConfig = JSON.parse(config);
+                        if (!parsedConfig.apiKey || parsedConfig.apiKey.trim() === '') {
+                            parsedConfig.apiKey = 'sk-buitin-key-do-not-change';
+                        }
+                        if (!parsedConfig.baseUrl || parsedConfig.baseUrl.trim() === '') {
+                            parsedConfig.baseUrl = DEFAULT_BASE_URL;
+                        }
+                        return parsedConfig;
+                    }
+                } catch (error) {
+                    console.error('[CHARACTER] Error loading API config:', error);
+                }
+                return {
+                    apiKey: 'sk-buitin-key-do-not-change',
+                    baseUrl: DEFAULT_BASE_URL
+                };
+            })();
+            const customConfig = getApiConfig();
             const headers = { 'Content-Type': 'application/json' };
 
             // 如果有自定义配置，添加到请求头
@@ -382,7 +442,31 @@
                 console.log(`[CHARACTER] Polling task ${taskId}, attempt ${pollCount}/${maxPolls}`);
                 
                 // 获取自定义 API 配置（统一使用单一 API 配置）
-                const customConfig = getApiConfig ? getApiConfig() : null;
+                // 安全地获取 getApiConfig 函数
+                const getApiConfigSafe = window.getApiConfig || (() => {
+                    const API_CONFIG_KEY = 'sora2-api-config';
+                    const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+                    try {
+                        const config = localStorage.getItem(API_CONFIG_KEY);
+                        if (config) {
+                            const parsedConfig = JSON.parse(config);
+                            if (!parsedConfig.apiKey || parsedConfig.apiKey.trim() === '') {
+                                parsedConfig.apiKey = 'sk-buitin-key-do-not-change';
+                            }
+                            if (!parsedConfig.baseUrl || parsedConfig.baseUrl.trim() === '') {
+                                parsedConfig.baseUrl = DEFAULT_BASE_URL;
+                            }
+                            return parsedConfig;
+                        }
+                    } catch (error) {
+                        console.error('[CHARACTER] Error loading API config:', error);
+                    }
+                    return {
+                        apiKey: 'sk-buitin-key-do-not-change',
+                        baseUrl: DEFAULT_BASE_URL
+                    };
+                })();
+                const customConfig = getApiConfigSafe();
                 const headers = { 'Content-Type': 'application/json' };
 
                 // 如果有自定义配置，添加到请求头
