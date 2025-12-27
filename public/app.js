@@ -1115,7 +1115,7 @@ async function handleTextToImage(e) {
 
     const prompt = imagePrompt.value.trim();
     if (!prompt) {
-        alert(window.i18n.t('pleaseEnterDescription'));
+        alert(window.i18n?.t('pleaseEnterDescription') || '请输入描述');
         return;
     }
 
@@ -1293,7 +1293,7 @@ async function handleImageEdit(e) {
     const prompt = editPrompt.value.trim();
 
     if (!uploadedImageData) {
-        alert(window.i18n.t('pleaseUploadImage'));
+        alert(window.i18n?.t('pleaseUploadImage') || '请上传图片');
         return;
     }
 
@@ -1340,7 +1340,7 @@ async function handleImageEdit(e) {
     } finally {
         clearInterval(progressInterval);
         editImageBtn.disabled = false;
-        editImageBtn.innerHTML = `<i class="fas fa-edit"></i><span>${window.i18n.t('editImageBtn')}</span>`;
+        editImageBtn.innerHTML = `<i class="fas fa-edit"></i><span>${window.i18n?.t('editImageBtn') || '编辑图像'}</span>`;
     }
 }
 
@@ -1584,7 +1584,7 @@ function showProgressIndicator() {
     videoContainer.classList.add('hidden');
     progressIndicator.classList.remove('hidden');
     progressBar.style.width = '10%';
-    statusText.textContent = window.i18n.t('processingVideo') || '正在生成视频...';
+    statusText.textContent = window.i18n?.t('processingVideo') || '正在生成视频...';
 
     const progressPercent = document.getElementById('progressPercent');
     const elapsedTime = document.getElementById('elapsedTime');
@@ -1867,12 +1867,12 @@ async function handleImageUpload(e) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        alert(window.i18n.t('pleaseUploadImageFile'));
+        alert(window.i18n?.t('pleaseUploadImageFile') || '请上传图片文件');
         return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-        alert(window.i18n.t('imageSizeLimit'));
+        alert(window.i18n?.t('imageSizeLimit') || '图片大小不能超过10MB');
         return;
     }
 
@@ -1917,12 +1917,12 @@ async function handleEditImageUpload(e) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        alert(window.i18n.t('pleaseUploadImageFile'));
+        alert(window.i18n?.t('pleaseUploadImageFile') || '请上传图片文件');
         return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-        alert(window.i18n.t('imageSizeLimit'));
+        alert(window.i18n?.t('imageSizeLimit') || '图片大小不能超过10MB');
         return;
     }
 
@@ -2610,7 +2610,7 @@ function updateDynamicContent() {
         generateImageBtn.innerHTML = `<i class="fas fa-magic"></i><span>${window.i18n.t('generateImage')}</span>`;
     }
     if (editImageBtn && !editImageBtn.disabled) {
-        editImageBtn.innerHTML = `<i class="fas fa-edit"></i><span>${window.i18n.t('editImageBtn')}</span>`;
+        editImageBtn.innerHTML = `<i class="fas fa-edit"></i><span>${window.i18n?.t('editImageBtn') || '编辑图像'}</span>`;
     }
 }
 
