@@ -2614,5 +2614,268 @@ window.resetImageResults = resetImageResults;
 window.resetEditResults = resetEditResults;
 window.updateDynamicContent = updateDynamicContent;
 
+// ============================================
+// 批量生成功能
+// ============================================
+
+let batchTasks = [];
+let batchResults = [];
+
+// 批量模式切换
+document.querySelectorAll('[data-batch-mode]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const mode = e.currentTarget.dataset.batchMode;
+
+        // 更新按钮状态
+        document.querySelectorAll('[data-batch-mode]').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'transparent';
+            b.style.color = '#9ca3af';
+        });
+        e.currentTarget.classList.add('active');
+        e.currentTarget.style.background = '#3b82f6';
+        e.currentTarget.style.color = 'white';
+
+        // 切换表单显示
+        const singleForm = document.getElementById('videoForm');
+        const batchForm = document.getElementById('batchVideoForm');
+
+        if (mode === 'batch') {
+            singleForm.classList.add('hidden');
+            batchForm.classList.remove('hidden');
+        } else {
+            singleForm.classList.remove('hidden');
+            batchForm.classList.add('hidden');
+        }
+    });
+});
+
+// 批量生成表单提交
+const batchVideoForm = document.getElementById('batchVideoForm');
+if (batchVideoForm) {
+    batchVideoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const promptsText = document.getElementById('batchPrompts').value.trim();
+        if (!promptsText) {
+            showMessage(window.i18n?.t('enterPrompt') || '请输入提示词', 'warning');
+            return;
+        }
+
+        // 解析提示词（每行一个）
+        const prompts = promptsText.split('\n')
+            .map(p => p.trim())
+            .filter(p => p.length > 0)
+            .slice(0, 10); // 最多10个
+
+        if (prompts.length === 0) {
+            showMessage(window.i18n?.t('enterPrompt') || '请输入提示词', 'warning');
+            return;
+        }
+
+        const model = document.getElementById('batchModelSelect').value;
+
+        // 显示进度
+        showBatchProgress(prompts.length);
+
+        batchTasks = [];
+        batchResults = [];
+
+        // 依次提交任务
+        for (let i = 0; i < prompts.length; i++) {
+            const prompt = prompts[i];
+            updateBatchTaskStatus(i, 'pending', prompt);
+
+            try {
+                const requestData = {
+                    prompt: prompt,
+                    model: model,
+                    aspect_ratio: '16:9',
+                    duration: '10',
+                    hd: model === 'sora-2-pro',
+                    images: []
+                };
+
+                // 提交视频生成任务
+                const response = await fetch('/api/video/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getApiHeaders() },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.task_id) {
+                    batchTasks.push({ taskId: data.task_id, prompt: prompt, index: i });
+                    updateBatchTaskStatus(i, 'processing', prompt);
+
+                    // 轮询任务状态
+                    const videoUrl = await pollBatchVideoTask(data.task_id, i);
+                    if (videoUrl) {
+                        batchResults.push({ index: i, prompt: prompt, url: videoUrl });
+                        updateBatchTaskStatus(i, 'completed', prompt, videoUrl);
+                    }
+                } else {
+                    updateBatchTaskStatus(i, 'failed', prompt, null, data.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error(`[Batch] Task ${i} error:`, error);
+                updateBatchTaskStatus(i, 'failed', prompt, null, error.message);
+            }
+        }
+
+        // 显示结果
+        showBatchResults();
+    });
+}
+
+// 显示批量进度
+function showBatchProgress(totalTasks) {
+    const progressContainer = document.getElementById('batchProgressContainer');
+    const resultsContainer = document.getElementById('batchResults');
+
+    if (progressContainer) progressContainer.classList.remove('hidden');
+    if (resultsContainer) resultsContainer.classList.add('hidden');
+
+    const taskList = document.getElementById('batchTaskList');
+    if (taskList) {
+        taskList.innerHTML = '';
+    }
+}
+
+// 更新批量任务状态
+function updateBatchTaskStatus(index, status, prompt, videoUrl = null, error = null) {
+    const taskList = document.getElementById('batchTaskList');
+    if (!taskList) return;
+
+    let taskElement = document.getElementById(`batch-task-${index}`);
+
+    if (!taskElement) {
+        taskElement = document.createElement('div');
+        taskElement.id = `batch-task-${index}`;
+        taskElement.className = 'card';
+        taskElement.style.marginBottom = '0.5rem';
+        taskElement.style.padding = '1rem';
+        taskList.appendChild(taskElement);
+    }
+
+    const statusMap = {
+        'pending': '<i class="fas fa-clock"></i>',
+        'processing': '<i class="fas fa-spinner fa-spin"></i>',
+        'completed': '<i class="fas fa-check-circle" style="color: #10b981;"></i>',
+        'failed': '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>'
+    };
+
+    let content = `
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.875rem; color: #999;">${index + 1}.</span>
+            ${statusMap[status] || ''}
+            <span style="flex: 1; font-size: 0.875rem;">${prompt.substring(0, 40)}${prompt.length > 40 ? '...' : ''}</span>
+        `;
+
+    if (status === 'completed' && videoUrl) {
+        content += `
+            <button onclick="downloadBatchVideo('${videoUrl}', ${index})" style="background: #3b82f6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                <i class="fas fa-download"></i>
+            </button>
+        `;
+    } else if (status === 'failed') {
+        content += `<span style="color: #ef4444; font-size: 0.75rem;">${error || 'Failed'}</span>`;
+    }
+
+    content += '</div>';
+
+    taskElement.innerHTML = content;
+}
+
+// 轮询批量视频任务状态
+async function pollBatchVideoTask(taskId, index) {
+    const maxPolls = 120;
+    let pollCount = 0;
+    const pollInterval = 5000;
+
+    while (pollCount < maxPolls) {
+        try {
+            const response = await fetch(`/api/video-task/${taskId}`, {
+                method: 'GET',
+                headers: getApiHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Task status query failed: ${response.status}`);
+            }
+
+            const taskData = await response.json();
+            const status = taskData.status;
+
+            if (status === 'SUCCESS') {
+                const videoUrl = taskData.data?.output;
+                if (videoUrl) {
+                    return videoUrl;
+                }
+            } else if (status === 'FAILURE') {
+                console.error(`[Batch] Task ${index} failed:`, taskData.fail_reason);
+                return null;
+            }
+
+            pollCount++;
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+        } catch (error) {
+            console.error(`[Batch] Task ${index} poll error:`, error);
+            pollCount++;
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
+    }
+
+    console.error(`[Batch] Task ${index} timeout`);
+    return null;
+}
+
+// 显示批量结果
+function showBatchResults() {
+    const resultsContainer = document.getElementById('batchResults');
+    const videoList = document.getElementById('batchVideoList');
+
+    if (resultsContainer) resultsContainer.classList.remove('hidden');
+    if (videoList) {
+        let videosHTML = '';
+        batchResults.forEach(result => {
+            videosHTML += `
+                <div class="card">
+                    <div style="position: relative; padding-top: 56.25%; background: #000; border-radius: 0.5rem; overflow: hidden; margin-bottom: 0.5rem;">
+                        <video src="${result.url}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" controls></video>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.875rem; color: #999;">${result.index + 1}</span>
+                        <button onclick="downloadBatchVideo('${result.url}', ${result.index})" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.875rem;">
+                            <i class="fas fa-download"></i> 下载
+                        </button>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">${result.prompt.substring(0, 50)}...</p>
+                </div>
+            `;
+        });
+        videoList.innerHTML = videosHTML;
+    }
+
+    showMessage(`批量生成完成！成功 ${batchResults.length} 个视频`, 'success');
+}
+
+// 下载批量视频
+function downloadBatchVideo(url, index) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `batch-video-${index + 1}-${Date.now()}.mp4`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showMessage('开始下载...', 'success');
+}
+
+window.downloadBatchVideo = downloadBatchVideo;
+
 // Listen for language change events
 window.addEventListener('languageChanged', updateDynamicContent);

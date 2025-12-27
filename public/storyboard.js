@@ -97,7 +97,7 @@
 
     // 渲染场景列表
     function renderScenes() {
-        const scenesContainer = document.getElementById('storyboardScenes');
+        const scenesContainer = document.getElementById('scenesList');
         if (!scenesContainer) return;
 
         if (storyboardScenes.length === 0) {

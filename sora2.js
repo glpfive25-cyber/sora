@@ -579,6 +579,10 @@ class Sora2 {
       // 使用统一的 V2 API 端点：/v2/videos/generations/{task_id}
       const response = await this.client.get(`/v2/videos/generations/${taskId}`);
 
+      // 详细记录 API 响应
+      console.log(`[Sora2] Task status response status: ${response.status}`);
+      console.log(`[Sora2] Task status response data:`, JSON.stringify(response.data));
+
       if (response.data && response.data.error) {
         console.error('API returned error:', response.data.error);
         throw new Error(response.data.error.message || response.data.error.message_zh || 'Task status query failed');
@@ -586,7 +590,12 @@ class Sora2 {
 
       return response.data;
     } catch (error) {
-      console.error('[Sora2] Task status query error:', error);
+      console.error('[Sora2] Task status query error:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       throw new Error(`Task status query error: ${error.response?.data?.error?.message || error.message}`);
     }
   }
