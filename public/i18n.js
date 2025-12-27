@@ -747,13 +747,456 @@ const translations = {
         downloadingAll: "Starting to download all videos",
         generationError: "Generation error",
         atLeastOneScene: "At least one scene required"
+    },
+    ja: {
+        // Header
+        appTitle: "Sora2 AI動画生成器",
+        aiVideoFeatures: "AI動画機能",
+        pricing: "料金プラン",
+        startCreating: "動画作成を開始",
+        login: "ログイン",
+
+        // Main Title
+        mainTitle: "AI 動画生成",
+        mainSubtitle: "AI技術であなたのアイデアを素晴らしい動画に変換",
+
+        // Generation Settings
+        generationSettings: "生成設定",
+        textToVideo: "テキストから動画",
+        imageToVideo: "画像から動画",
+
+        // Form Labels
+        videoDescription: "動画の説明",
+        videoPromptPlaceholder: "生成したい動画を詳しく説明してください...",
+        uploadImage: "画像をアップロード",
+        clickToUpload: "クリックして参照画像をアップロード",
+        supportsFormats: "JPG, PNG, GIF対応",
+        imagePromptPlaceholder: "画像をどのようにアニメーション化するか説明してください...",
+        model: "モデル",
+        generateVideo: "動画を生成",
+        reset: "リセット",
+
+        // Model Options
+        soraImage: "Sora 画像生成 ($0.020)",
+        soraVideo2: "Sora 動画 標準 ($0.020)",
+        soraVideo2Landscape: "Sora 動画 横向き ($0.020)",
+        soraVideo2Landscape15s: "Sora 動画 横向き 15秒 ($0.020)",
+        soraVideo2Portrait: "Sora 動画 縦向き ($0.020)",
+        soraVideo2Portrait15s: "Sora 動画 縦向き 15秒 ($0.020)",
+
+        // Generated Video Panel
+        generatedVideo: "生成された動画",
+        enterPromptToGenerate: "プロンプトを入力して動画を生成",
+        videoWillAppearHere: "生成された動画は処理後にここに表示されます。",
+        enterDetailedDescription: "詳細な説明を入力して開始してください。",
+
+        // Progress Messages
+        initializing: "初期化中...",
+        processingVideo: "動画処理中... 数分かかる場合があります",
+        queuedForProcessing: "処理待ち...",
+        status: "ステータス",
+        waiting: "待機中",
+        generating: "生成中...",
+
+        // Video Player
+        download: "ダウンロード",
+        share: "共有",
+
+        // Error Messages
+        generationFailed: "生成失敗",
+        tryAgain: "再試行",
+        pleaseEnterDescription: "動画の説明を入力してください！",
+        pleaseUploadImage: "参照画像をアップロードしてください！",
+        pleaseUploadImageFile: "画像ファイルをアップロードしてください！",
+        imageSizeLimit: "画像サイズは10MBを超えることはできません！",
+        videoGenerationFailed: "動画の生成に失敗しました",
+        videoGenerationTimeout: "動画の生成がタイムアウトしました。もう一���お試しください。",
+        failedToCheckStatus: "動画ステータスの確認に失敗しました",
+
+        // Navigation
+        videoTools: "動画ツール",
+        imageTools: "画像ツール",
+        characterTools: "キャラクターツール",
+        others: "その他",
+        textToVideoNav: "テキストから動画",
+        imageToVideoNav: "画像から動画",
+        textToImageNav: "テキストから画像",
+        imageToImageNav: "画像から画像",
+        createCharacter: "キャラクター作成",
+        characterVideo: "キャラクター動画",
+        myCharacters: "マイキャラクター",
+        settings: "設定",
+        help: "ヘルプ",
+        quickStart: "クイックスタート",
+        limitedTimeFree: "期間限定無料",
+        quickStartStep1: "1. 説明文を入力",
+        quickStartStep2: "2. モデルパラメータを選択",
+        quickStartStep3: "3. 生成ボタンをクリック",
+
+        // Page Titles
+        textToVideoTitle: "テキストから動画生成",
+        imageToVideoTitle: "画像から動画生成",
+        textToImageTitle: "テキストから画像生成",
+        imageToImageTitle: "画像から画像",
+
+        // Tips and Guidance
+        selectModel: "モデルを選択",
+        descriptionHint: "💡 ヒント：詳細な説明ほど良い結果が得られます",
+        enterVideoDescription: "望む動画コンテンツを説明してください",
+        videoPromptExample: "例: 日当たりの良い草地で可愛らしい子猫が遊び、蝶が周りを飛んでいます...",
+        characterCount: "文字",
+
+        // UI Elements
+        generateBtn: "動画を生成",
+        resetBtn: "リセット",
+        downloadBtn: "ダウンロード",
+        shareBtn: "共有",
+
+        // App Title
+        appTitle: "Sora2 Imagine - AI 生成器",
+
+        // Update Time
+        lastUpdate: "最終更新",
+
+        // Storyboard
+        storyboardNav: "ストーリーボード",
+        storyboardTitle: "ストーリーボード作成",
+        scenes: "シーンリスト",
+        addScene: "シーンを追加",
+        generateStoryboard: "ストーリーボードを生成",
+        generatingStoryboard: "生成中...",
+        storyboardComplete: "ストーリーボード完了",
+        downloadAll: "すべてダウンロード",
+
+        // Batch Generation
+        singleGeneration: "単一生成",
+        batchGeneration: "バッチ生成",
+        batchPrompts: "バッチプロンプト",
+        batchProgress: "バッチ進捗",
+        batchComplete: "バッチ完了",
+        batchGenerateBtn: "バッチ動画を生成",
+
+        // Additional
+        readyToGenerate: "最初の動画を生成する準備ができました",
+        enterDetailedScene: "上に詳細なシーン説明を入力すると、AIが素晴らしい動画を作成します",
+        processing: "処理中...",
+        uploadImages: "画像をアップロード"
+    },
+    ko: {
+        // Header
+        appTitle: "Sora2 AI 동영상 생성기",
+        aiVideoFeatures: "AI 동영상 기능",
+        pricing: "가격 플랜",
+        startCreating: "동영상 만들기 시작",
+        login: "로그인",
+
+        // Main Title
+        mainTitle: "AI 동영상 생성",
+        mainSubtitle: "AI 기술로 당신의 아이디어를 멋진 동영상으로 변환하세요",
+
+        // Generation Settings
+        generationSettings: "생성 설정",
+        textToVideo: "텍스트를 동영상으로",
+        imageToVideo: "이미지를 동영상으로",
+
+        // Form Labels
+        videoDescription: "동영상 설명",
+        videoPromptPlaceholder: "생성할 동영상을 자세히 설명하세요...",
+        uploadImage: "이미지 업로드",
+        clickToUpload: "클릭하여 참조 이미지 업로드",
+        supportsFormats: "JPG, PNG, GIF 지원",
+        imagePromptPlaceholder: "이미지를 어떻게 애니메이션화할지 설명하세요...",
+        model: "모델",
+        generateVideo: "동영상 생성",
+        reset: "재설정",
+
+        // Video Player
+        download: "다운로드",
+        share: "공유",
+
+        // Navigation
+        videoTools: "동영상 도구",
+        imageTools: "이미지 도구",
+        characterTools: "캐릭터 도구",
+        others: "기타",
+        textToVideoNav: "텍스트를 동영상으로",
+        imageToVideoNav: "이미지를 동영상으로",
+        textToImageNav: "텍스트를 이미지로",
+        imageToImageNav: "이미지를 이미지로",
+        createCharacter: "캐릭터 생성",
+        characterVideo: "캐릭터 동영상",
+        myCharacters: "내 캐릭터",
+        settings: "설정",
+        help: "도움말",
+        quickStart: "빠른 시작",
+        limitedTimeFree: "기간 한정 무료",
+        quickStartStep1: "1. 설명 텍스트 입력",
+        quickStartStep2: "2. 모델 매개변수 선택",
+        quickStartStep3: "3. 생성 버튼 클릭",
+
+        // Page Titles
+        textToVideoTitle: "텍스트를 동영상으로 생성",
+        imageToVideoTitle: "이미지를 동영상으로 변환",
+
+        selectModel: "모델 선택",
+        generateBtn: "동영상 생성",
+        resetBtn: "재설정",
+        downloadBtn: "다운로드",
+        shareBtn: "공유",
+        appTitle: "Sora2 Imagine - AI 생성기",
+        lastUpdate: "마지막 업데이트",
+        processing: "처리 중...",
+        descriptionHint: "💡 팁: 설명이 자세할수록 더 좋은 결과를 얻을 수 있습니다",
+        characterCount: "자"
+    },
+    es: {
+        // Header
+        appTitle: "Generador de Videos AI Sora2",
+        aiVideoFeatures: "Características de Video AI",
+        pricing: "Planes de Precios",
+        startCreating: "Comenzar a Crear Video",
+        login: "Iniciar Sesión",
+
+        // Main Title
+        mainTitle: "Generación de Video con IA",
+        mainSubtitle: "Transforma tus ideas en videos impresionantes con tecnología de IA",
+
+        // Generation Settings
+        generationSettings: "Configuración de Generación",
+        textToVideo: "Texto a Video",
+        imageToVideo: "Imagen a Video",
+
+        // Form Labels
+        videoDescription: "Descripción del Video",
+        videoPromptPlaceholder: "Describe en detalle el video que deseas generar...",
+        uploadImage: "Subir Imagen",
+        clickToUpload: "Haz clic para subir imagen de referencia",
+        supportsFormats: "Soporta JPG, PNG, GIF",
+        imagePromptPlaceholder: "Describe cómo debe animarse la imagen...",
+        model: "Modelo",
+        generateVideo: "Generar Video",
+        reset: "Restablecer",
+
+        // Video Player
+        download: "Descargar",
+        share: "Compartir",
+
+        // Navigation
+        videoTools: "Herramientas de Video",
+        imageTools: "Herramientas de Imagen",
+        characterTools: "Herramientas de Personaje",
+        others: "Otros",
+        textToVideoNav: "Texto a Video",
+        imageToVideoNav: "Imagen a Video",
+        textToImageNav: "Texto a Imagen",
+        imageToImageNav: "Imagen a Imagen",
+        createCharacter: "Crear Personaje",
+        characterVideo: "Video de Personaje",
+        myCharacters: "Mis Personajes",
+        settings: "Configuración",
+        help: "Ayuda",
+        quickStart: "Inicio Rápido",
+        limitedTimeFree: "Gratis por Tiempo Limitado",
+        quickStartStep1: "1. Ingrese texto de descripción",
+        quickStartStep2: "2. Seleccione parámetros del modelo",
+        quickStartStep3: "3. Haga clic en el botón generar",
+
+        // Page Titles
+        textToVideoTitle: "Generación de Texto a Video",
+        imageToVideoTitle: "Conversión de Imagen a Video",
+
+        selectModel: "Seleccionar Modelo",
+        generateBtn: "Generar Video",
+        resetBtn: "Restablecer",
+        downloadBtn: "Descargar",
+        shareBtn: "Compartir",
+        appTitle: "Sora2 Imagine - Generador AI",
+        lastUpdate: "Última Actualización",
+        processing: "Procesando...",
+        descriptionHint: "💡 Consejo: Descripciones más detalladas dan mejores resultados",
+        characterCount: "caracteres"
+    },
+    fr: {
+        // Header
+        appTitle: "Générateur Vidéo IA Sora2",
+        aiVideoFeatures: "Fonctions Vidéo IA",
+        pricing: "Tarifs",
+        startCreating: "Commencer à Créer",
+        login: "Connexion",
+
+        // Main Title
+        mainTitle: "Génération de Vidéo par IA",
+        mainSubtitle: "Transformez vos idées en vidéos incroyables grâce à l'IA",
+
+        // Generation Settings
+        generationSettings: "Paramètres de Génération",
+        textToVideo: "Texte vers Vidéo",
+        imageToVideo: "Image vers Vidéo",
+
+        // Form Labels
+        videoDescription: "Description de la Vidéo",
+        videoPromptPlaceholder: "Décrivez en détail la vidéo que vous souhaitez générer...",
+        uploadImage: "Télécharger une Image",
+        clickToUpload: "Cliquez pour télécharger une image de référence",
+        supportsFormats: "Supporte JPG, PNG, GIF",
+        imagePromptPlaceholder: "Décrivez comment l'image doit être animée...",
+        model: "Modèle",
+        generateVideo: "Générer une Vidéo",
+        reset: "Réinitialiser",
+
+        // Video Player
+        download: "Télécharger",
+        share: "Partager",
+
+        // Navigation
+        videoTools: "Outils Vidéo",
+        imageTools: "Outils Image",
+        characterTools: "Outils Personnage",
+        others: "Autres",
+        textToVideoNav: "Texte vers Vidéo",
+        imageToVideoNav: "Image vers Vidéo",
+        textToImageNav: "Texte vers Image",
+        imageToImageNav: "Image vers Image",
+        createCharacter: "Créer un Personnage",
+        characterVideo: "Vidéo de Personnage",
+        myCharacters: "Mes Personnages",
+        settings: "Paramètres",
+        help: "Aide",
+        quickStart: "Démarrage Rapide",
+        limitedTimeFree: "Gratuit pour une Durée Limitée",
+        quickStartStep1: "1. Entrez le texte de description",
+        quickStartStep2: "2. Sélectionnez les paramètres du modèle",
+        quickStartStep3: "3. Cliquez sur le bouton générer",
+
+        selectModel: "Sélectionner un Modèle",
+        generateBtn: "Générer une Vidéo",
+        resetBtn: "Réinitialiser",
+        downloadBtn: "Télécharger",
+        shareBtn: "Partager",
+        appTitle: "Sora2 Imagine - Générateur IA",
+        lastUpdate: "Dernière Mise à Jour",
+        processing: "Traitement...",
+        descriptionHint: "💡 Astuce : Des descriptions plus détaillées donnent de meilleurs résultats",
+        characterCount: "caractères"
+    },
+    de: {
+        // Header
+        appTitle: "Sora2 KI-Videogenerator",
+        aiVideoFeatures: "KI-Videofunktionen",
+        pricing: "Preise",
+        startCreating: "Video Erstellen Starten",
+        login: "Anmelden",
+
+        // Main Title
+        mainTitle: "KI-Videogenerierung",
+        mainSubtitle: "Verwandeln Sie Ihre Ideen mit KI-Technologie in beeindruckende Videos",
+
+        // Generation Settings
+        generationSettings: "Generierungseinstellungen",
+        textToVideo: "Text zu Video",
+        imageToVideo: "Bild zu Video",
+
+        // Form Labels
+        videoDescription: "Videobeschreibung",
+        videoPromptPlaceholder: "Beschreiben Sie detailliert das Video, das Sie generieren möchten...",
+        uploadImage: "Bild Hochladen",
+        clickToUpload: "Klicken Sie, um Referenzbild hochzuladen",
+        supportsFormats: "Unterstützt JPG, PNG, GIF",
+        imagePromptPlaceholder: "Beschreiben Sie, wie das Bild animiert werden soll...",
+        model: "Modell",
+        generateVideo: "Video Generieren",
+        reset: "Zurücksetzen",
+
+        // Video Player
+        download: "Herunterladen",
+        share: "Teilen",
+
+        // Navigation
+        videoTools: "Video-Tools",
+        imageTools: "Bild-Tools",
+        characterTools: "Charakter-Tools",
+        others: "Andere",
+        textToVideoNav: "Text zu Video",
+        imageToVideoNav: "Bild zu Video",
+        textToImageNav: "Text zu Bild",
+        imageToImageNav: "Bild zu Bild",
+        createCharacter: "Charakter Erstellen",
+        characterVideo: "Charakter-Video",
+        myCharacters: "Meine Charaktere",
+        settings: "Einstellungen",
+        help: "Hilfe",
+        quickStart: "Schnellstart",
+        limitedTimeFree: "Kostenlos für Begrenzte Zeit",
+        quickStartStep1: "1. Beschreibungstext eingeben",
+        quickStartStep2: "2. Modellparameter auswählen",
+        quickStartStep3: "3. Generieren-Button klicken",
+
+        selectModel: "Modell Auswählen",
+        generateBtn: "Video Generieren",
+        resetBtn: "Zurücksetzen",
+        downloadBtn: "Herunterladen",
+        shareBtn: "Teilen",
+        appTitle: "Sora2 Imagine - KI-Generator",
+        lastUpdate: "Letzte Aktualisierung",
+        processing: "Verarbeitung...",
+        descriptionHint: "💡 Tipp: Detailliertere Beschreibungen yielding bessere Ergebnisse",
+        characterCount: "Zeichen"
+    }
 };
+
+// Language configuration
+const languageConfig = {
+    zh: { name: '中文', flag: '🇨🇳', direction: 'ltr' },
+    en: { name: 'English', flag: '🇺🇸', direction: 'ltr' },
+    ja: { name: '日本語', flag: '🇯🇵', direction: 'ltr' },
+    ko: { name: '한국어', flag: '🇰🇷', direction: 'ltr' },
+    es: { name: 'Español', flag: '🇪🇸', direction: 'ltr' },
+    fr: { name: 'Français', flag: '🇫🇷', direction: 'ltr' },
+    de: { name: 'Deutsch', flag: '🇩🇪', direction: 'ltr' }
+};
+
+// Detect user's browser language
+function detectBrowserLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    const langCode = browserLang.split('-')[0];
+
+    // Check if detected language is supported
+    if (translations[langCode]) {
+        return langCode;
+    }
+
+    // Default to English for unsupported languages
+    return 'en';
+}
 
 // Language Management
 class I18n {
     constructor() {
-        this.currentLang = localStorage.getItem('language') || 'zh';
+        // Try to get saved language, or detect from browser, or default to Chinese
+        const savedLang = localStorage.getItem('language');
+        this.currentLang = savedLang || detectBrowserLanguage() || 'zh';
         this.translations = translations;
+        this.supportedLanguages = Object.keys(translations);
+    }
+
+    setLanguage(lang) {
+        if (this.translations[lang]) {
+            this.currentLang = lang;
+            localStorage.setItem('language', lang);
+            this.updatePageLanguage();
+            this.updateMetaTags();
+        }
+    }
+
+    getLanguageConfig(lang) {
+        return languageConfig[lang] || languageConfig.en;
+    }
+
+    getSupportedLanguages() {
+        return this.supportedLanguages.map(lang => ({
+            code: lang,
+            ...languageConfig[lang]
+        }));
     }
 
     setLanguage(lang) {
