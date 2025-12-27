@@ -458,6 +458,10 @@
                 <i class="fas fa-image"></i>
                 <span data-i18n="imageToVideoNav">图像转视频</span>
             </div>
+            <div class="nav-item" data-mode="storyboard">
+                <i class="fas fa-film"></i>
+                <span data-i18n="storyboardNav">故事板</span>
+            </div>
         </div>
 
         <!-- Image Tools -->
@@ -555,6 +559,18 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Mode Toggle: Single / Batch -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; background: #1a1a1a; padding: 0.25rem; border-radius: 0.5rem;">
+                    <button type="button" class="mode-toggle-btn active" data-batch-mode="single" style="flex: 1; padding: 0.5rem; border: none; background: transparent; color: #9ca3af; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s;">
+                        <span data-i18n="singleGeneration">单个生成</span>
+                    </button>
+                    <button type="button" class="mode-toggle-btn" data-batch-mode="batch" style="flex: 1; padding: 0.5rem; border: none; background: transparent; color: #9ca3af; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s;">
+                        <span data-i18n="batchGeneration">批量生成</span>
+                    </button>
+                </div>
+
+                <!-- Single Mode Form -->
                 <form id="videoForm">
                     <div class="input-group">
                         <label class="input-label" data-i18n="enterVideoDescription">描述您想要的视频内容</label>
@@ -588,6 +604,58 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Batch Mode Form -->
+                <form id="batchVideoForm" class="hidden">
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="batchPrompts">批量提示词</label>
+                        <textarea id="batchPrompts" class="input-field" rows="6" data-i18n="batchPromptsPlaceholder" placeholder="每行一个提示词，例如：&#10;一只可爱的小猫在草地上玩耍&#10;宇宙中一颗蓝色星球缓缓旋转&#10;樱花树下，花瓣随风飘落"></textarea>
+                        <p style="color: #666; font-size: 0.75rem; margin-top: 0.5rem;" data-i18n="batchPromptsHint">每行一个提示词，最多支持 10 个</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="selectModel">选择模型</label>
+                        <select id="batchModelSelect" class="input-field">
+                            <option value="sora_video2">Sora-2 横屏 10秒 (推荐)</option>
+                            <option value="sora_video2-portrait">Sora-2 竖屏 10秒</option>
+                            <option value="sora_video2-landscape-15s">Sora-2-Pro 横屏 15秒</option>
+                            <option value="sora_video2-portrait-15s">Sora-2-Pro 竖屏 15秒</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="batchGenerateBtn" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-play"></i>
+                        <span data-i18n="batchGenerateBtn">批量生成视频</span>
+                    </button>
+                </form>
+
+                <!-- Batch Progress -->
+                <div id="batchProgressContainer" class="hidden">
+                    <div class="card-title">
+                        <i class="fas fa-tasks"></i>
+                        <span data-i18n="batchProgress">批量任务进度</span>
+                    </div>
+                    <div id="batchTaskList">
+                        <!-- Dynamic task list -->
+                    </div>
+                </div>
+
+                <!-- Batch Results -->
+                <div id="batchResults" class="hidden">
+                    <div class="card-title">
+                        <i class="fas fa-check-circle"></i>
+                        <span data-i18n="batchComplete">批量完成</span>
+                    </div>
+                    <div id="batchVideoList" class="image-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                        <!-- Video list -->
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="downloadBatchBtn" class="btn btn-secondary" style="flex: 1;">
+                            <i class="fas fa-download"></i>
+                            <span data-i18n="downloadAll">下载全部</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Video Display -->
@@ -637,6 +705,85 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storyboard Section -->
+        <div id="storyboard-section" class="mode-section">
+            <div class="header">
+                <h1 class="header-title" data-i18n="storyboardTitle">故事板创作</h1>
+            </div>
+
+            <!-- Scene List -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-list"></i>
+                    <span data-i18n="scenes">场景列表</span>
+                </div>
+
+                <div id="scenesList">
+                    <!-- Dynamic scenes will be added here -->
+                </div>
+
+                <button id="addSceneBtn" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="addScene">添加场景</span>
+                </button>
+            </div>
+
+            <!-- Generation Settings -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-cog"></i>
+                    <span data-i18n="generationSettings">生成设置</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="selectModel">选择模型</label>
+                        <select id="storyboardModel" class="input-field">
+                            <option value="sora_video2">Sora-2 横屏 10秒</option>
+                            <option value="sora_video2-portrait">Sora-2 竖屏 10秒</option>
+                            <option value="sora_video2-landscape-15s">Sora-2-Pro 横屏 15秒</option>
+                            <option value="sora_video2-portrait-15s">Sora-2-Pro 竖屏 15秒</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="generateStoryboardBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-play"></i>
+                    <span data-i18n="generateStoryboard">生成故事板</span>
+                </button>
+            </div>
+
+            <!-- Progress Display -->
+            <div id="storyboardProgress" class="card hidden">
+                <div class="card-title">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span data-i18n="generatingStoryboard">生成中...</span>
+                </div>
+                <div id="scenesProgressList">
+                    <!-- Each scene's progress will be shown here -->
+                </div>
+            </div>
+
+            <!-- Results Preview -->
+            <div id="storyboardResults" class="card hidden">
+                <div class="card-title">
+                    <i class="fas fa-check-circle"></i>
+                    <span data-i18n="storyboardComplete">故事板完成</span>
+                </div>
+
+                <div id="storyboardVideoList" class="image-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                    <!-- Scene videos will be shown here -->
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button id="downloadAllBtn" class="btn btn-secondary" style="flex: 1;">
+                        <i class="fas fa-download"></i>
+                        <span data-i18n="downloadAll">下载全部</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1084,26 +1231,23 @@
                             <label class="input-label">模型</label>
                             <select id="characterModelSelect" class="input-field">
                                 <option value="sora-2">Sora-2 (基础)</option>
-                                <option value="sora-2-characters">Sora-2-Characters (角色专用)</option>
-                                <option value="sora-2-landscape">Sora-2-Landscape (横屏)</option>
-                                <option value="sora-2-landscape-hd" selected>Sora-2-Landscape-HD (横屏高清)</option>
-                                <option value="sora-2-portrait">Sora-2-Portrait (竖屏)</option>
-                                <option value="sora-2-portrait-hd">Sora-2-Portrait-HD (竖屏高清)</option>
+                                <option value="sora-2-pro">Sora-2-Pro (高清/15秒)</option>
+                                <option value="sora_video2">Sora-Video2</option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label class="input-label">时长</label>
                             <select id="characterDurationSelect" class="input-field">
                                 <option value="10">10秒</option>
-                                <option value="15">15秒</option>
-                                <option value="25">25秒</option>
+                                <option value="15">15秒 (仅Pro)</option>
+                                <option value="25">25秒 (仅Pro)</option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label class="input-label">方向</label>
                             <select id="characterOrientationSelect" class="input-field">
-                                <option value="landscape">横屏</option>
-                                <option value="portrait">竖屏</option>
+                                <option value="landscape">横屏 (16:9)</option>
+                                <option value="portrait">竖屏 (9:16)</option>
                             </select>
                         </div>
                     </div>
@@ -1396,6 +1540,7 @@
     <!-- Scripts -->
     <script src="i18n.js"></script>
     <script src="app.js"></script>
+    <script src="storyboard.js"></script>
     <script>
         // Mode switching
         document.querySelectorAll('.nav-item[data-mode]').forEach(item => {
@@ -1482,9 +1627,9 @@
         });
     </script>
     <script src="tooltip.js"></script>
-    <script src="character.js"></script>
+    <script src="character.js?v=3"></script>
     <script src="onboarding.js"></script>
-    
+
     <!-- Debug: Test Onboarding Button (Remove in production) -->
     <script>
         // 更新时间显示功能

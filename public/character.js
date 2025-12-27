@@ -141,128 +141,81 @@
             console.log('[CHARACTER] Using video URL:', videoUrl);
             const timestamps = `${start},${end}`;
 
-            // 始终使用本地服务器代理，避免 CORS 问题
-            console.log('[CHARACTER] Using local server proxy to avoid CORS issues');
-            
-            // 获取自定义 API 配置
-            const customConfig = getApiConfig ? getApiConfig() : null;
-            const headers = { 'Content-Type': 'application/json' };
-            
-            // 如果有自定义配置，添加到请求头（角色功能使用 Pro API）
-            if (customConfig) {
-                // 优先使用角色专用的 API Key 和 URL，否则使用标准配置
-                const characterKey = customConfig.characterApiKey || customConfig.apiKey;
-                const characterUrl = customConfig.characterBaseUrl || customConfig.baseUrl;
-                
-                if (characterKey && characterUrl) {
-                    headers['X-API-Key'] = characterKey;
-                    headers['X-Base-URL'] = characterUrl;
-                    console.log('[CHARACTER] Using custom Pro API configuration');
-                }
+            // 根据接口文档，角色功能有两种使用方式：
+            // 方式1: 先调用 /sora/v1/characters 创建角色，获得 username，然后在 prompt 中用 @username
+            // 方式2: 直接在视频生成时使用 character_url 和 character_timestamps 参数
+            //
+            // 由于当前 API Key 可能不支持创建角色端点，我们采用方式2：
+            // 直接将角色信息保存到本地，在视频生成时使用 character_url 和 character_timestamps
+
+            console.log('[CHARACTER] Saving character info locally for direct use in video generation');
+
+            // 生成本地角色 ID 和用户名
+            const localId = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const localUsername = 'character_' + Math.random().toString(36).substr(2, 6);
+
+            // 保存角色数据到本地
+            const fullCharacter = {
+                id: localId,
+                username: localUsername,
+                permalink: '#',
+                profile_picture_url: '',
+                createdAt: Date.now(),
+                videoUrl: videoUrl,
+                timestamps: timestamps,
+                startTime: start,
+                endTime: end,
+                isLocal: true
+            };
+
+            characterHistory.unshift(fullCharacter);
+            if (characterHistory.length > 20) {
+                characterHistory = characterHistory.slice(0, 20);
             }
-            
-            const response = await fetch('/api/character/create', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify({ videoUrl, timestamps })
-            });
+            localStorage.setItem('sora2-character-history', JSON.stringify(characterHistory));
 
-            const data = await response.json();
-            console.log('[CHARACTER] API Response:', { 
-                status: response.status, 
-                ok: response.ok, 
-                data: data,
-                dataString: JSON.stringify(data, null, 2)
-            });
+            // 更新界面
+            updateCharacterSelect();
+            updateCharacterList();
 
-            if (response.ok && data.id) {
-                // 保存角色数据
-                const fullCharacter = {
-                    ...data,
-                    createdAt: Date.now(),
-                    videoUrl: videoUrl,
-                    timestamps: timestamps,
-                    startTime: start,
-                    endTime: end
-                };
-
-                characterHistory.unshift(fullCharacter);
-                if (characterHistory.length > 20) {
-                    characterHistory = characterHistory.slice(0, 20);
-                }
-                localStorage.setItem('sora2-character-history', JSON.stringify(characterHistory));
-
-                // 更新界面
-                updateCharacterSelect();
-                updateCharacterList();
-
-                if (resultDiv) {
-                    resultDiv.innerHTML = `
-                        <div style="text-align: center; padding: 1rem;">
-                            <i class="fas fa-check-circle fa-4x text-green-500 mb-3"></i>
-                            <h3 class="text-lg font-bold mb-2">角色创建成功！</h3>
-                            <div style="background: #1a1a1a; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0;">
-                                <p style="font-size: 0.875rem;"><strong>角色ID:</strong> ${data.id}</p>
-                                <p style="font-size: 0.875rem;"><strong>用户名:</strong> @${data.username}</p>
-                                <p style="font-size: 0.875rem;"><strong>链接:</strong>
-                                    <a href="${data.permalink}" target="_blank" style="color: #3b82f6; text-decoration: underline;">
-                                        ${data.permalink}
-                                    </a>
-                                </p>
-                            </div>
-                            <button onclick="switchMode('character-video')" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
-                                <i class="fas fa-video"></i>
-                                <span>使用此角色生成视频</span>
-                            </button>
+            if (resultDiv) {
+                resultDiv.innerHTML = `
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fas fa-check-circle fa-4x text-green-500 mb-3"></i>
+                        <h3 class="text-lg font-bold mb-2">角色已保存！</h3>
+                        <div style="background: #1a1a1a; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0;">
+                            <p style="font-size: 0.875rem;"><strong>角色ID:</strong> ${localId}</p>
+                            <p style="font-size: 0.875rem;"><strong>视频URL:</strong> ${videoUrl.substring(0, 50)}...</p>
+                            <p style="font-size: 0.875rem;"><strong>时间范围:</strong> ${start}s - ${end}s</p>
+                            <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem;">
+                                使用方式：在"角色视频生成"中选择此角色，系统将直接使用视频URL和时间戳生成视频
+                            </p>
                         </div>
-                    `;
-                }
-
-                showMessage(`角色创建成功！用户名: @${data.username}`, 'success');
-
-            } else {
-                // 提供更详细的错误信息
-                let errorMsg = '';
-                if (!response.ok) {
-                    // 处理各种错误格式
-                    if (typeof data.error === 'string') {
-                        errorMsg = data.error;
-                    } else if (data.error && typeof data.error === 'object') {
-                        errorMsg = data.error.message || data.error.message_zh || JSON.stringify(data.error);
-                    } else if (data.message) {
-                        errorMsg = data.message;
-                    } else {
-                        errorMsg = `HTTP ${response.status}: ${response.statusText}`;
-                    }
-                } else if (!data.id) {
-                    errorMsg = `API 返回成功但缺少角色 ID。响应数据: ${JSON.stringify(data)}`;
-                } else {
-                    errorMsg = data.message || `未知错误: ${JSON.stringify(data)}`;
-                }
-                throw new Error(errorMsg);
+                        <button onclick="switchMode('character-video')" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
+                            <i class="fas fa-video"></i>
+                            <span>使用此角色生成视频</span>
+                        </button>
+                    </div>
+                `;
             }
+
+            showMessage(`角色已保存！可以在"角色视频生成"中使用`, 'success');
 
         } catch (error) {
             console.error('[CHARACTER] Error creating character:', error);
 
             const resultDiv = document.getElementById('characterResult');
             if (resultDiv) {
-                // 截断过长的错误信息以便显示
-                const errorMsg = error.message.length > 200 
-                    ? error.message.substring(0, 200) + '...' 
-                    : error.message;
-                
                 resultDiv.innerHTML = `
                     <div style="text-align: center; padding: 2rem;">
                         <i class="fas fa-exclamation-circle fa-3x text-red-500 mb-3"></i>
-                        <h3 class="text-lg font-bold mb-2">创建失败</h3>
-                        <p style="color: #ef4444; word-break: break-word; white-space: pre-wrap;">${errorMsg}</p>
-                        ${error.message.length > 200 ? '<p style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.5rem;">查看浏览器控制台获取完整错误信息</p>' : ''}
+                        <h3 class="text-lg font-bold mb-2">保存失败</h3>
+                        <p style="color: #ef4444;">${error.message}</p>
                     </div>
                 `;
             }
 
-            showMessage('角色创建失败: ' + (error.message.length > 50 ? error.message.substring(0, 50) + '...' : error.message), 'error');
+            showMessage('角色保存失败: ' + error.message, 'error');
         } finally {
             const createBtn = document.getElementById('createCharacterBtn');
             if (createBtn) {
@@ -306,12 +259,16 @@
             const mentionMatch = prompt.match(/@([\w.]+)/);
             const mentionedUsername = mentionMatch ? mentionMatch[1] : null;
 
+            // 根据 API 文档构建请求数据
+            // aspect_ratio: 16:9 (横屏) 或 9:16 (竖屏)
+            // duration: "10", "15", "25" (字符串格式)
+            // hd: true/false (仅 sora-2-pro 支持)
             const requestData = {
                 prompt: prompt.trim(),
                 model: model,
-                size: 'large', // 高清质量
-                duration: parseInt(duration),
-                orientation: orientation,
+                aspect_ratio: orientation === 'portrait' ? '9:16' : '16:9',
+                duration: duration.toString(),
+                hd: model === 'sora-2-pro',
                 images: [] // 空数组
             };
 
@@ -340,26 +297,20 @@
             
             console.log('[CHARACTER] Request data:', requestData);
 
-            // 始终使用本地服务器代理，避免 CORS 问题
+            // 始终使用本地服务器代理��避免 CORS 问题
             console.log('[CHARACTER] Using local server proxy to avoid CORS issues');
-            
-            // 获取自定义 API 配置
+
+            // 获取自定义 API 配置（统一使用单一 API 配置）
             const customConfig = getApiConfig ? getApiConfig() : null;
             const headers = { 'Content-Type': 'application/json' };
-            
-            // 如果有自定义配置，添加到请求头（角色功能使用 Pro API）
-            if (customConfig) {
-                // 优先使用角色专用的 API Key 和 URL，否则使用标准配置
-                const characterKey = customConfig.characterApiKey || customConfig.apiKey;
-                const characterUrl = customConfig.characterBaseUrl || customConfig.baseUrl;
-                
-                if (characterKey && characterUrl) {
-                    headers['X-API-Key'] = characterKey;
-                    headers['X-Base-URL'] = characterUrl;
-                    console.log('[CHARACTER] Using custom Pro API configuration');
-                }
+
+            // 如果有自定义配置，添加到请求头
+            if (customConfig && customConfig.apiKey && customConfig.baseUrl) {
+                headers['X-API-Key'] = customConfig.apiKey;
+                headers['X-Base-URL'] = customConfig.baseUrl;
+                console.log('[CHARACTER] Using custom API configuration');
             }
-            
+
             const response = await fetch('/api/video/create-with-character', {
                 method: 'POST',
                 headers: headers,
@@ -369,40 +320,14 @@
             const data = await response.json();
             console.log('[CHARACTER] Response:', data);
             console.log('[CHARACTER] Response status:', response.status, 'OK:', response.ok);
-            console.log('[CHARACTER] Data ID:', data.id, 'Type:', typeof data.id);
+            console.log('[CHARACTER] Task ID:', data.task_id);
 
-            if (response.ok && data.id) {
-                // 检查是否是真正的任务 ID（task_xxx 格式）
-                const isTaskId = data.id.startsWith('task_');
-                
-                if (isTaskId) {
-                    showMessage('角色视频生成任务已创建！任务ID: ' + data.id, 'success');
-                    updateCharacterStatus('任务已创建，正在排队处理...', 10);
-                    // 开始轮询任务状态
-                    pollCharacterVideoTask(data.id);
-                } else {
-                    // Chat completion ID，需要从 content 中提取视频 URL
-                    console.log('[CHARACTER] Chat completion response:', data);
-                    
-                    if (data.content) {
-                        // 尝试从内容中提取视频 URL
-                        const urlMatch = data.content.match(/(https?:\/\/[^\s\)\]<>"']+\.mp4[^\s\)\]<>"']*)/i);
-                        if (urlMatch) {
-                            const videoUrl = urlMatch[0];
-                            console.log('[CHARACTER] Found video URL:', videoUrl);
-                            hideCharacterProgress();
-                            showCharacterVideo(videoUrl);
-                            showMessage('🎉 角色视频生成成功！', 'success');
-                        } else {
-                            // 显示原始内容，可能包含任务 ID 或其他信息
-                            updateCharacterStatus('生成中，请稍候...', 50);
-                            showMessage('视频正在生成，响应内容: ' + data.content.substring(0, 100), 'info');
-                        }
-                    } else {
-                        showMessage('收到响应但格式不符合预期', 'warning');
-                        console.log('[CHARACTER] Unexpected response format:', data);
-                    }
-                }
+            if (response.ok && data.task_id) {
+                // 使用 task_id 进行轮询
+                showMessage('角色视频生成任务已创建！任务ID: ' + data.task_id, 'success');
+                updateCharacterStatus('任务已创建，正在排队处理...', 10);
+                // 开始轮询任务状态
+                pollCharacterVideoTask(data.task_id);
 
             } else {
                 const errorMsg = data.error || data.message || `HTTP ${response.status}`;
@@ -412,16 +337,16 @@
 
         } catch (error) {
             console.error('[CHARACTER] Error generating video:', error);
-            
+
             let errorMessage = '视频生成失败: ';
             if (error.message.includes('character')) {
-                errorMessage += '角色相关错误，请确保角色 @username 正确';
+                errorMessage += '角色相关错误��请确保角色 @username 正确';
             } else if (error.message.includes('500')) {
                 errorMessage += '服务器错误，请检查控制台获取详细信息';
             } else {
                 errorMessage += error.message;
             }
-            
+
             showMessage(errorMessage, 'error');
             hideCharacterProgress();
             resetCharacterGenerateBtn();
@@ -456,20 +381,14 @@
             try {
                 console.log(`[CHARACTER] Polling task ${taskId}, attempt ${pollCount}/${maxPolls}`);
                 
-                // 获取自定义 API 配置
+                // 获取自定义 API 配置（统一使用单一 API 配置）
                 const customConfig = getApiConfig ? getApiConfig() : null;
-                const headers = {};
-                
-                // 如果有自定义配置，添加到请求头（角色功能使用 Pro API）
-                if (customConfig) {
-                    // 优先使用角色专用的 API Key 和 URL，否则使用标准配置
-                    const characterKey = customConfig.characterApiKey || customConfig.apiKey;
-                    const characterUrl = customConfig.characterBaseUrl || customConfig.baseUrl;
-                    
-                    if (characterKey && characterUrl) {
-                        headers['X-API-Key'] = characterKey;
-                        headers['X-Base-URL'] = characterUrl;
-                    }
+                const headers = { 'Content-Type': 'application/json' };
+
+                // 如果有自定义配置，添加到请求头
+                if (customConfig && customConfig.apiKey && customConfig.baseUrl) {
+                    headers['X-API-Key'] = customConfig.apiKey;
+                    headers['X-Base-URL'] = customConfig.baseUrl;
                 }
                 
                 // 使用正确的端点
@@ -486,25 +405,26 @@
                     throw new Error(data.error);
                 }
 
-                // 获取状态 - 支持多种格式
-                const status = (data.status || '').toLowerCase();
-                
-                // 检查是否完成 - 支持多种完成状态
-                if (status === 'completed' || status === 'succeeded' || status === 'success' || status === 'done') {
+                // 获取状态 - 支持 API 文档中的大写格式和小写格式
+                // API 返回: NOT_START, IN_PROGRESS, SUCCESS, FAILURE
+                const status = data.status || '';
+
+                // 检查是否完成 - 支持 SUCCESS 状态
+                if (status === 'SUCCESS' || status === 'success' || status === 'completed' || status === 'succeeded' || status === 'done') {
                     // 任务完成
                     console.log('[CHARACTER] Task completed!', data);
-                    
-                    // 获取视频URL - 支持多种返回格式
-                    const videoUrl = data.video_url 
-                        || data.videoUrl 
-                        || data.output?.video_url 
-                        || data.output?.videoUrl
-                        || data.result?.video_url 
+
+                    // 获取视频URL - API 文档格式: data.output
+                    const videoUrl = data.data?.output  // V2 API 格式
+                        || data.output                  // 简化格式
+                        || data.video_url
+                        || data.videoUrl
+                        || data.result?.video_url
                         || data.result?.videoUrl
                         || data.url
                         || data.data?.video_url
                         || data.data?.url;
-                    
+
                     if (videoUrl) {
                         showCharacterVideo(videoUrl);
                         showMessage('🎉 角色视频生成成功！', 'success');
@@ -512,43 +432,45 @@
                         console.error('[CHARACTER] Video URL not found in response:', data);
                         throw new Error('视频URL未找到，请检查任务详情');
                     }
-                    
+
                     hideCharacterProgress();
                     resetCharacterGenerateBtn();
                     return;
-                    
-                } else if (status === 'failed' || status === 'error' || status === 'failure') {
+
+                } else if (status === 'FAILURE' || status === 'failed' || status === 'error' || status === 'FAILURE') {
                     // 任务失败
-                    const errorMsg = data.error || data.message || data.error_message || '视频生成失败';
+                    const errorMsg = data.fail_reason || data.error || data.message || data.error_message || '视频生成失败';
                     throw new Error(errorMsg);
-                    
-                } else if (status === 'processing' || status === 'pending' || status === 'queued' || status === 'running' || status === 'in_progress') {
+
+                } else if (status === 'NOT_START' || status === 'IN_PROGRESS' || status === 'processing' || status === 'pending' || status === 'queued' || status === 'running' || status === 'in_progress') {
                     // 任务进行中
                     let progress = 20;
                     let statusMsg = '正在处理中...';
-                    
+
                     // 尝试获取进度
                     if (data.progress !== undefined && data.progress !== null) {
-                        progress = Math.min(90, parseInt(data.progress));
+                        // API 返回进度可能是 "100%" 格式
+                        const progressStr = String(data.progress);
+                        progress = Math.min(90, parseInt(progressStr.replace('%', '')) || 20);
                     } else if (data.percentage !== undefined) {
                         progress = Math.min(90, parseInt(data.percentage));
                     } else {
                         // 模拟进度
                         progress = Math.min(90, 20 + (pollCount * 2));
                     }
-                    
-                    if (status === 'queued' || status === 'pending') {
+
+                    if (status === 'NOT_START' || status === 'queued' || status === 'pending') {
                         statusMsg = '⏳ 任务排队中，请耐心等待...';
                         progress = Math.min(30, progress);
-                    } else if (status === 'running' || status === 'in_progress') {
+                    } else if (status === 'IN_PROGRESS' || status === 'running' || status === 'in_progress') {
                         statusMsg = '🎬 视频渲染中，请耐心等待...';
                     } else {
                         statusMsg = '⚙️ 视频生成中，请耐心等待...';
                     }
-                    
+
                     updateCharacterStatus(statusMsg, progress);
                     pollErrorCount = 0; // 重置错误计数
-                    
+
                     // 继续轮询
                     if (pollCount < maxPolls) {
                         characterPollTimer = setTimeout(poll, pollInterval);
@@ -557,7 +479,7 @@
                     }
                 } else {
                     // 未知状态，继续轮询
-                    console.log('[CHARACTER] Unknown status:', status);
+                    console.log('[CHARACTER] Unknown status:', status, 'Full response:', data);
                     updateCharacterStatus(`状态: ${status || '处理中'}...`, Math.min(50, 20 + pollCount));
                     if (pollCount < maxPolls) {
                         characterPollTimer = setTimeout(poll, pollInterval);

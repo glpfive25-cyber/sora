@@ -1,5 +1,6 @@
 // API Configuration Management
 const API_CONFIG_KEY = 'sora2-api-config';
+const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
 
 function getApiConfig() {
     try {
@@ -11,13 +12,14 @@ function getApiConfig() {
                 parsedConfig.apiKey = 'sk-buitin-key-do-not-change';
             }
             if (!parsedConfig.baseUrl || parsedConfig.baseUrl.trim() === '') {
-                parsedConfig.baseUrl = 'https://api.maynor1024.live/';
+                parsedConfig.baseUrl = DEFAULT_BASE_URL;
             }
-            if (!parsedConfig.characterApiKey || parsedConfig.characterApiKey.trim() === '') {
-                parsedConfig.characterApiKey = 'sk-buitin-key-do-not-change';
+            // 迁移旧的 characterApiKey 配置到统一配置
+            if (parsedConfig.characterApiKey && !parsedConfig.apiKey) {
+                parsedConfig.apiKey = parsedConfig.characterApiKey;
             }
-            if (!parsedConfig.characterBaseUrl || parsedConfig.characterBaseUrl.trim() === '') {
-                parsedConfig.characterBaseUrl = 'https://api.maynor1024.live/';
+            if (parsedConfig.characterBaseUrl && !parsedConfig.baseUrl) {
+                parsedConfig.baseUrl = parsedConfig.characterBaseUrl;
             }
             return parsedConfig;
         }
@@ -27,26 +29,20 @@ function getApiConfig() {
     // 内置默认API配置
     return {
         apiKey: 'sk-buitin-key-do-not-change',
-        baseUrl: 'https://api.maynor1024.live/',
-        characterApiKey: 'sk-buitin-key-do-not-change',
-        characterBaseUrl: 'https://api.maynor1024.live/'
+        baseUrl: DEFAULT_BASE_URL
     };
 }
 
-function saveApiConfig(apiKey, baseUrl, characterApiKey, characterBaseUrl) {
+function saveApiConfig(apiKey, baseUrl) {
     try {
         const config = {
             apiKey: apiKey || '',
-            baseUrl: baseUrl || '',
-            characterApiKey: characterApiKey || '',
-            characterBaseUrl: characterBaseUrl || ''
+            baseUrl: baseUrl || ''
         };
         localStorage.setItem(API_CONFIG_KEY, JSON.stringify(config));
-        console.log('API config saved:', { 
+        console.log('API config saved:', {
             hasKey: !!config.apiKey,
-            hasCharacterKey: !!config.characterApiKey,
-            baseUrl: config.baseUrl,
-            characterBaseUrl: config.characterBaseUrl 
+            baseUrl: config.baseUrl
         });
         return true;
     } catch (error) {
@@ -370,17 +366,13 @@ function handleSaveSettings() {
     // 如果用户没有输入密钥，使用内置密钥
     const finalApiKey = apiKey || 'sk-buitin-key-do-not-change';
     const finalBaseUrl = DEFAULT_BASE_URL;
-    const finalCharacterApiKey = apiKey || 'sk-buitin-key-do-not-change';
-    const finalCharacterBaseUrl = DEFAULT_BASE_URL;
 
-    if (saveApiConfig(finalApiKey, finalBaseUrl, finalCharacterApiKey, finalCharacterBaseUrl)) {
+    if (saveApiConfig(finalApiKey, finalBaseUrl)) {
         // Show success message
         showNotification('设置已保存', 'success');
         updateApiStatusIndicator({
             apiKey: finalApiKey,
-            baseUrl: finalBaseUrl,
-            characterApiKey: finalCharacterApiKey,
-            characterBaseUrl: finalCharacterBaseUrl
+            baseUrl: finalBaseUrl
         });
 
         // Close modal

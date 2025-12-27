@@ -20,37 +20,24 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 function getSoraInstance(req) {
   const customApiKey = req.headers['x-api-key'];
   const customBaseUrl = req.headers['x-base-url'];
-  
-  // 如果前端提供了自定义配置，使用前端配置
-  if (customApiKey && customBaseUrl) {
-    console.log('[Server] Using custom API from frontend');
-    console.log('[Server] Frontend API Key:', customApiKey ? `${customApiKey.substring(0, 8)}...` : 'none');
-    console.log('[Server] Frontend Base URL:', customBaseUrl);
-    return new Sora2(customApiKey, customBaseUrl);
-  }
-  
-  // 否则使用环境变量配置（如果有）
-  if (process.env.SORA_API_KEY) {
-    console.log('[Server] Using API from environment variables');
-    console.log('[Server] Env API Key:', process.env.SORA_API_KEY ? `${process.env.SORA_API_KEY.substring(0, 8)}...` : 'none');
-    console.log('[Server] Env Base URL:', process.env.SORA_BASE_URL || 'https://api.maynor1024.live/');
-    return new Sora2(
-      process.env.SORA_API_KEY,
-      process.env.SORA_BASE_URL || 'https://api.maynor1024.live/'
-    );
-  }
-  
-  // 如果都没有，返回 null
-  console.warn('[Server] No API configuration found');
-  console.warn('[Server] Frontend headers:', { 
-    hasApiKey: !!customApiKey, 
-    hasBaseUrl: !!customBaseUrl 
+
+  // 默认 Base URL 和 API Key
+  const DEFAULT_BASE_URL = 'https://api.maynor1024.live/';
+  const DEFAULT_API_KEY = 'sk-buitin-key-do-not-change';
+
+  // 确定使用的 API Key 和 Base URL（优先级：前端 > 环境变量 > 默认值）
+  let apiKey = customApiKey || process.env.SORA_API_KEY || DEFAULT_API_KEY;
+  let baseUrl = customBaseUrl || process.env.SORA_BASE_URL || DEFAULT_BASE_URL;
+
+  const source = customApiKey ? 'frontend' : (process.env.SORA_API_KEY ? 'environment' : 'default');
+
+  console.log('[Server] API configuration:', {
+    source: source,
+    apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
+    baseUrl: baseUrl
   });
-  console.warn('[Server] Environment variables:', { 
-    hasApiKey: !!process.env.SORA_API_KEY, 
-    hasBaseUrl: !!process.env.SORA_BASE_URL 
-  });
-  return null;
+
+  return new Sora2(apiKey, baseUrl);
 }
 
 // API Routes
@@ -350,23 +337,19 @@ app.post('/api/video/create-with-character', async (req, res) => {
       return res.status(400).json({ error: 'Model is required' });
     }
 
-    if (!size) {
-      return res.status(400).json({ error: 'Size is required' });
-    }
-
     // 提取 @username 如果存在
     const mentionMatch = prompt.match(/@([\w.]+)/);
     const characterUsername = mentionMatch ? mentionMatch[1] : null;
 
+    // 根据 API 文档构建视频选项
     const videoOptions = {
       prompt: prompt,
       model: model,
-      size: size,
-      images: images || [],
-      orientation: orientation,
+      aspect_ratio: orientation === 'portrait' ? '9:16' : '16:9',
       duration: duration,
-      character_username: characterUsername, // 传递角色用户名
-      character_url: character_url, // 保留旧方式以兼容
+      hd: model === 'sora-2-pro',
+      images: images || [],
+      character_url: character_url,
       character_timestamps: character_timestamps
     };
 

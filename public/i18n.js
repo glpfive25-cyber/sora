@@ -317,7 +317,62 @@ const translations = {
         appTitle: "Sora2 Imagine - AI 生成器",
 
         // Update Time
-        lastUpdate: "最后更新"
+        lastUpdate: "最后更新",
+
+        // Storyboard
+        storyboardNav: "故事板",
+        storyboardTitle: "故事板创作",
+        scenes: "场景列表",
+        addScene: "添加场景",
+        scene: "场景",
+        scenePromptPlaceholder: "描述场景内容，例如：日出时分的海边，海浪轻轻拍打沙滩...",
+        generateStoryboard: "生成故事板",
+        generatingStoryboard: "生成中...",
+        storyboardComplete: "故事板完成",
+        storyboardCompleteMsg: "故事板生成完成！",
+        downloadAll: "下载全部",
+        noVideosToDownload: "没有可下载的视频",
+        enterAtLeastOneScene: "请至少添加一个场景描述",
+        submitting: "提交中",
+        completed: "完成",
+        failed: "失败",
+
+        // Batch Generation
+        singleGeneration: "单个生成",
+        batchGeneration: "批量生成",
+        batchPrompts: "批量提示词",
+        batchPromptsPlaceholder: "每行一个提示词，例如：\n一只可爱的小猫在草地上玩耍\n宇宙中一颗蓝色星球缓缓旋转\n樱花树下，花瓣随风飘落",
+        batchPromptsHint: "每行一个提示词，最多支持 10 个",
+        batchProgress: "批量任务进度",
+        batchComplete: "批量完成",
+        batchGenerateBtn: "批量生成视频",
+        uploadImages: "上传��片",
+        clickToUploadMultiple: "点击上传多张图片",
+        commonPrompt: "通用动作描述",
+        commonPromptPlaceholder: "描述图片应该如何动起来（将应用于所有图片）",
+        generateBatchVideos: "批量生成视频",
+        supportsFormats: "支持 JPG, PNG",
+        maxImages: "最多支持10张图片",
+
+        // Storyboard additional
+        noScenesYet: "暂无场景",
+        moveUp: "上移",
+        moveDown: "下移",
+        removeScene: "删除场景",
+        characters: "字",
+        noDescription: "无描述",
+        waiting: "等待中",
+        queuing: "排队中",
+        generating: "生成中",
+        retrying: "重试中",
+        noVideosGenerated: "没有生成视频",
+        download: "下载",
+        copyLink: "复制链接",
+        linkCopied: "链接已复制",
+        copyFailed: "复制失败",
+        downloadingAll: "开始下载全部视频",
+        generationError: "生成出错",
+        atLeastOneScene: "至少保留一个场景"
     },
     en: {
         // Header
@@ -636,7 +691,62 @@ const translations = {
         appTitle: "Sora2 Imagine - AI Generator",
 
         // Update Time
-        lastUpdate: "Last Updated"
+        lastUpdate: "Last Updated",
+
+        // Storyboard
+        storyboardNav: "Storyboard",
+        storyboardTitle: "Storyboard Creator",
+        scenes: "Scene List",
+        addScene: "Add Scene",
+        scene: "Scene",
+        scenePromptPlaceholder: "Describe the scene, e.g., Seaside at sunrise, waves gently lapping the shore...",
+        generateStoryboard: "Generate Storyboard",
+        generatingStoryboard: "Generating...",
+        storyboardComplete: "Storyboard Complete",
+        storyboardCompleteMsg: "Storyboard generation complete!",
+        downloadAll: "Download All",
+        noVideosToDownload: "No videos to download",
+        enterAtLeastOneScene: "Please add at least one scene description",
+        submitting: "Submitting",
+        completed: "Completed",
+        failed: "Failed",
+
+        // Batch Generation
+        singleGeneration: "Single Generation",
+        batchGeneration: "Batch Generation",
+        batchPrompts: "Batch Prompts",
+        batchPromptsPlaceholder: "One prompt per line, e.g.:\nA cute kitten playing on grass\nA blue planet rotating in space\nCherry blossoms falling in the wind",
+        batchPromptsHint: "One prompt per line, up to 10 prompts",
+        batchProgress: "Batch Progress",
+        batchComplete: "Batch Complete",
+        batchGenerateBtn: "Generate Batch Videos",
+        uploadImages: "Upload Images",
+        clickToUploadMultiple: "Click to upload multiple images",
+        commonPrompt: "Common Action Description",
+        commonPromptPlaceholder: "Describe how images should animate (applied to all images)",
+        generateBatchVideos: "Generate Batch Videos",
+        supportsFormats: "Supports JPG, PNG",
+        maxImages: "Up to 10 images",
+
+        // Storyboard additional
+        noScenesYet: "No scenes yet",
+        moveUp: "Move Up",
+        moveDown: "Move Down",
+        removeScene: "Remove Scene",
+        characters: "chars",
+        noDescription: "No description",
+        waiting: "Waiting",
+        queuing: "Queuing",
+        generating: "Generating",
+        retrying: "Retrying",
+        noVideosGenerated: "No videos generated",
+        download: "Download",
+        copyLink: "Copy Link",
+        linkCopied: "Link copied",
+        copyFailed: "Copy failed",
+        downloadingAll: "Starting to download all videos",
+        generationError: "Generation error",
+        atLeastOneScene: "At least one scene required"
 };
 
 // Language Management

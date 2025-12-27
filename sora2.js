@@ -461,8 +461,13 @@ class Sora2 {
         dataType: typeof error.response?.data
       });
 
+      // 特殊处理 401 和 404 错误
+      if (error.response?.status === 401 || error.response?.status === 404) {
+        throw new Error('角色创建功能需要升级 API 密钥权限。请使用支持角色功能的 API Key，或联系 API 提供商获取权限。');
+      }
+
       // 如果错误消息已经是我们自定义的，直接抛出
-      if (error.message.includes('API 端点不可用') || error.message.includes('不支持角色创建')) {
+      if (error.message.includes('API 端点不可用') || error.message.includes('不支持角色创建') || error.message.includes('需要升级 API')) {
         throw error;
       }
 
@@ -475,7 +480,7 @@ class Sora2 {
     try {
       console.log(`[Sora2] Creating video with character`);
       console.log(`[Sora2] Using V2 API format for character video`);
-      console.log(`[Sora2] Using character API endpoint: ${this.characterBaseURL}`);
+      console.log(`[Sora2] Using unified API endpoint: ${this.baseURL}`);
 
       // 使用指定的模型或默认模型
       const model = options.model || 'sora-2-pro';
@@ -511,7 +516,7 @@ class Sora2 {
       console.log(`[Sora2] Request data:`, requestData);
 
       // 使用新的 V2 API 端点
-      const response = await this.characterClient.post('/v2/videos/generations', requestData, {
+      const response = await this.client.post('/v2/videos/generations', requestData, {
         timeout: 60000 // 1分钟超时，任务提交应该很快
       });
 
